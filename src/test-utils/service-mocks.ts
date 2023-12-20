@@ -4,6 +4,7 @@ import { createMock } from '@golevelup/ts-jest';
 import { ValueProvider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { ArtemisService } from '~/artemis/artemis.service';
 import { AuthService } from '~/auth/auth.service';
 import { ClaimsService } from '~/claims/claims.service';
 import { ComplianceRequirementsService } from '~/compliance/compliance-requirements.service';
@@ -16,6 +17,9 @@ import { DeveloperTestingService } from '~/developer-testing/developer-testing.s
 import { MetadataService } from '~/metadata/metadata.service';
 import { NetworkService } from '~/network/network.service';
 import { NftsService } from '~/nfts/nfts.service';
+import { OfflineEventRepo } from '~/offline-recorder/repo/offline-event.repo';
+import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
+import { OfflineTxRepo } from '~/offline-submitter/repos/offline-tx.repo';
 import { SubsidyService } from '~/subsidy/subsidy.service';
 import { ServiceProvider } from '~/test-utils/types';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -75,6 +79,7 @@ export const mockDeveloperServiceProvider: ValueProvider<DeveloperTestingService
 export class MockSigningService {
   public getAddressByHandle = jest.fn();
   public isAddress = jest.fn();
+  public getSigningManager = jest.fn();
 }
 
 export class MockTickerReservationsService {
@@ -306,4 +311,24 @@ export const mockConfidentialTransactionsServiceProvider: ValueProvider<Confiden
 export const mockConfidentialProofsServiceProvider: ValueProvider<ConfidentialProofsService> = {
   provide: ConfidentialProofsService,
   useValue: createMock<ConfidentialProofsService>(),
+};
+
+export const mockArtemisServiceProvider: ValueProvider<ArtemisService> = {
+  provide: ArtemisService,
+  useValue: createMock<ArtemisService>(),
+};
+
+export const mockOfflineRepoProvider: ValueProvider<OfflineEventRepo> = {
+  provide: OfflineEventRepo,
+  useValue: createMock<OfflineEventRepo>(),
+};
+
+export const mockOfflineTxRepoProvider: ValueProvider<OfflineTxRepo> = {
+  provide: OfflineTxRepo,
+  useValue: createMock<OfflineTxRepo>(),
+};
+
+export const mockOfflineStarterProvider: ValueProvider<OfflineStarterService> = {
+  provide: OfflineStarterService,
+  useValue: createMock<OfflineStarterService>(),
 };

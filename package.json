@@ -60,6 +60,7 @@
     "passport-headerapikey": "^1.2.2",
     "pg": "^8.11.3",
     "reflect-metadata": "0.1.13",
+    "rhea-promise": "^3.0.1",
     "rimraf": "3.0.2",
     "rxjs": "^7.5.7",
     "swagger-ui-express": "5.0.0",
