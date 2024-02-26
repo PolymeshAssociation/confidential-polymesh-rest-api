@@ -101,6 +101,9 @@ ARTEMIS_HOST=localhost## Domain or IP of artemis instance ##
 ARTEMIS_USERNAME=artemis ## Artemis user ##
 ARTEMIS_PASSWORD=artemis ## Artemis password ##
 ARTEMIS_PORT=5672 ## Port of AMQP acceptor ##
+
+# Proof Server:
+PROOF_SERVER_API=## API path where the proof server is hosted
 ```
 
 ## Signing Transactions

@@ -19,6 +19,7 @@ import { NftsService } from '~/nfts/nfts.service';
 import { OfflineEventRepo } from '~/offline-recorder/repo/offline-event.repo';
 import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
 import { OfflineTxRepo } from '~/offline-submitter/repos/offline-tx.repo';
+import { ProofServerService } from '~/proof-server/proof-server.service';
 import { SubsidyService } from '~/subsidy/subsidy.service';
 import { ServiceProvider } from '~/test-utils/types';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -129,6 +130,7 @@ export class MockNotificationsService {
 
 export class MockHttpService {
   post = jest.fn();
+  request = jest.fn();
 }
 
 export class MockScheduleService {
@@ -323,3 +325,8 @@ export const mockConfidentialTransactionsServiceProvider: ValueProvider<Confiden
     provide: ConfidentialTransactionsService,
     useValue: createMock<ConfidentialTransactionsService>(),
   };
+
+export const mockProofServerServiceProvider: ValueProvider<ProofServerService> = {
+  provide: ProofServerService,
+  useValue: createMock<ProofServerService>(),
+};
