@@ -318,6 +318,7 @@ export class MockIdentity {
   public getSecondaryAccounts = jest.fn();
   public getTrustingAssets = jest.fn();
   public getHeldAssets = jest.fn();
+  public getConfidentialVenues = jest.fn();
 }
 
 export class MockPortfolio {
