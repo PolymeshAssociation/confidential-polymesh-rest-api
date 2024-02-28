@@ -103,7 +103,7 @@ ARTEMIS_PASSWORD=artemis ## Artemis password ##
 ARTEMIS_PORT=5672 ## Port of AMQP acceptor ##
 
 # Proof Server:
-PROOF_SERVER_API=## API path where the proof server is hosted
+PROOF_SERVER_URL=## API path where the proof server is hosted
 ```
 
 ## Signing Transactions
