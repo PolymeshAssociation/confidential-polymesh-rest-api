@@ -9,7 +9,7 @@ import {
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
 import { AppValidationError } from '~/common/errors';
-import { extractTxBase, ServiceReturn } from '~/common/utils';
+import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { createConfidentialTransactionModel } from '~/confidential-transactions/confidential-transactions.util';
@@ -55,8 +55,9 @@ export class ConfidentialTransactionsService {
   public async createConfidentialVenue(
     baseParams: TransactionBaseDto
   ): ServiceReturn<ConfidentialVenue> {
+    const { options } = extractTxOptions(baseParams);
     const createVenue = this.polymeshService.polymeshApi.confidentialSettlements.createVenue;
-    return this.transactionsService.submit(createVenue, {}, baseParams);
+    return this.transactionsService.submit(createVenue, {}, options);
   }
 
   public async createConfidentialTransaction(
@@ -65,9 +66,9 @@ export class ConfidentialTransactionsService {
   ): ServiceReturn<ConfidentialTransaction> {
     const venue = await this.findVenue(venueId);
 
-    const { base, args } = extractTxBase(createConfidentialTransactionDto);
+    const { options, args } = extractTxOptions(createConfidentialTransactionDto);
 
-    return this.transactionsService.submit(venue.addTransaction, args, base);
+    return this.transactionsService.submit(venue.addTransaction, args, options);
   }
 
   public async observerAffirmLeg(
@@ -76,9 +77,9 @@ export class ConfidentialTransactionsService {
   ): ServiceReturn<ConfidentialTransaction> {
     const transaction = await this.findOne(transactionId);
 
-    const { base, args } = extractTxBase(body);
+    const { options, args } = extractTxOptions(body);
 
-    return this.transactionsService.submit(transaction.affirmLeg, args, base);
+    return this.transactionsService.submit(transaction.affirmLeg, args, options);
   }
 
   public async senderAffirmLeg(
@@ -89,7 +90,7 @@ export class ConfidentialTransactionsService {
 
     const transaction = await createConfidentialTransactionModel(tx);
 
-    const { base, args } = extractTxBase(body);
+    const { options, args } = extractTxOptions(body);
 
     const { legId, legAmounts } = args;
 
@@ -134,7 +135,7 @@ export class ConfidentialTransactionsService {
         party: ConfidentialAffirmParty.Sender,
         proofs,
       },
-      base
+      options
     );
   }
 
@@ -142,18 +143,20 @@ export class ConfidentialTransactionsService {
     transactionId: BigNumber,
     base: TransactionBaseDto
   ): ServiceReturn<ConfidentialTransaction> {
+    const { options } = extractTxOptions(base);
     const transaction = await this.findOne(transactionId);
 
-    return this.transactionsService.submit(transaction.reject, {}, base);
+    return this.transactionsService.submit(transaction.reject, {}, options);
   }
 
   public async executeTransaction(
     transactionId: BigNumber,
     base: TransactionBaseDto
   ): ServiceReturn<ConfidentialTransaction> {
+    const { options } = extractTxOptions(base);
     const transaction = await this.findOne(transactionId);
 
-    return this.transactionsService.submit(transaction.execute, {}, base);
+    return this.transactionsService.submit(transaction.execute, {}, options);
   }
 
   public async getInvolvedParties(transactionId: BigNumber): Promise<Identity[]> {

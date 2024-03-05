@@ -9,7 +9,7 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { ServiceReturn } from '~/common/utils';
+import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
@@ -45,10 +45,11 @@ export class ConfidentialAccountsService {
     publicKey: string,
     base: TransactionBaseDto
   ): ServiceReturn<ConfidentialAccount> {
+    const { options } = extractTxOptions(base);
     const createConfidentialAccount =
       this.polymeshService.polymeshApi.confidentialAccounts.createConfidentialAccount;
 
-    return this.transactionsService.submit(createConfidentialAccount, { publicKey }, base);
+    return this.transactionsService.submit(createConfidentialAccount, { publicKey }, options);
   }
 
   public async getAllBalances(confidentialAccount: string): Promise<ConfidentialAssetBalance[]> {
@@ -88,10 +89,11 @@ export class ConfidentialAccountsService {
     confidentialAccount: string,
     base: TransactionBaseDto
   ): ServiceReturn<ConfidentialAccount> {
+    const { options } = extractTxOptions(base);
     const applyIncomingBalances =
       this.polymeshService.polymeshApi.confidentialAccounts.applyIncomingBalances;
 
-    return this.transactionsService.submit(applyIncomingBalances, { confidentialAccount }, base);
+    return this.transactionsService.submit(applyIncomingBalances, { confidentialAccount }, options);
   }
 
   public async findHeldAssets(

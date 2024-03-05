@@ -8,6 +8,7 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 import { when } from 'jest-when';
 
+import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
@@ -221,6 +222,7 @@ describe('ConfidentialAssetsService', () => {
     it('should freeze/unfreeze a Confidential Asset', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
       const mockTransactions = {
         blockHash: '0x1',
@@ -280,7 +282,7 @@ describe('ConfidentialAssetsService', () => {
       jest.spyOn(service, 'findOne').mockResolvedValue(mockAsset);
 
       when(mockTransactionsService.submit)
-        .calledWith(mockAsset.freezeAccount, params, { signer })
+        .calledWith(mockAsset.freezeAccount, params, { signer, processMode: ProcessMode.Submit })
         .mockResolvedValue({
           transactions: [mockTransaction],
         });
@@ -292,7 +294,7 @@ describe('ConfidentialAssetsService', () => {
       });
 
       when(mockTransactionsService.submit)
-        .calledWith(mockAsset.unfreezeAccount, params, { signer })
+        .calledWith(mockAsset.unfreezeAccount, params, { signer, processMode: ProcessMode.Submit })
         .mockResolvedValue({
           transactions: [mockTransaction],
         });
@@ -353,7 +355,11 @@ describe('ConfidentialAssetsService', () => {
         .mockResolvedValue(mockProof);
 
       when(mockTransactionsService.submit)
-        .calledWith(mockAsset.burn, { ...params, proof: mockProof }, { signer })
+        .calledWith(
+          mockAsset.burn,
+          { ...params, proof: mockProof },
+          { signer, processMode: ProcessMode.Submit }
+        )
         .mockResolvedValue({
           result: mockAsset,
           transactions: [mockTransaction],

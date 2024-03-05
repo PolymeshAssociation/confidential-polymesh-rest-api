@@ -11,6 +11,7 @@ import {
 import { when } from 'jest-when';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
 import { ConfidentialAssetModel } from '~/confidential-assets/models/confidential-asset.model';
@@ -211,7 +212,7 @@ describe('ConfidentialTransactionsService', () => {
       const mockConfidentialTransaction = createMockConfidentialTransaction();
 
       when(mockTransactionsService.submit)
-        .calledWith(mockVenue.addTransaction, args, { signer })
+        .calledWith(mockVenue.addTransaction, args, { signer, processMode: ProcessMode.Submit })
         .mockResolvedValue({
           result: mockConfidentialTransaction,
           transactions: [mockTransaction],
@@ -249,7 +250,10 @@ describe('ConfidentialTransactionsService', () => {
       const mockTransaction = new MockTransaction(mockTransactions);
 
       when(mockTransactionsService.submit)
-        .calledWith(mockConfidentialTransaction.affirmLeg, args, { signer })
+        .calledWith(mockConfidentialTransaction.affirmLeg, args, {
+          signer,
+          processMode: ProcessMode.Submit,
+        })
         .mockResolvedValue({
           result: mockConfidentialTransaction,
           transactions: [mockTransaction],
@@ -371,7 +375,7 @@ describe('ConfidentialTransactionsService', () => {
               },
             ],
           },
-          { signer }
+          { signer, processMode: ProcessMode.Submit }
         )
         .mockResolvedValue({
           result: mockConfidentialTransaction,
@@ -402,7 +406,11 @@ describe('ConfidentialTransactionsService', () => {
       const mockTransaction = new MockTransaction(mockTransactions);
 
       when(mockTransactionsService.submit)
-        .calledWith(mockConfidentialTransaction.reject, {}, { signer })
+        .calledWith(
+          mockConfidentialTransaction.reject,
+          {},
+          { signer, processMode: ProcessMode.Submit }
+        )
         .mockResolvedValue({
           result: mockConfidentialTransaction,
           transactions: [mockTransaction],
@@ -432,7 +440,11 @@ describe('ConfidentialTransactionsService', () => {
       const mockTransaction = new MockTransaction(mockTransactions);
 
       when(mockTransactionsService.submit)
-        .calledWith(mockConfidentialTransaction.execute, {}, { signer })
+        .calledWith(
+          mockConfidentialTransaction.execute,
+          {},
+          { signer, processMode: ProcessMode.Submit }
+        )
         .mockResolvedValue({
           result: mockConfidentialTransaction,
           transactions: [mockTransaction],
