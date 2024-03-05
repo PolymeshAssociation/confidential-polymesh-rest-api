@@ -9,6 +9,10 @@ import { AuthService } from '~/auth/auth.service';
 import { ClaimsService } from '~/claims/claims.service';
 import { ComplianceRequirementsService } from '~/compliance/compliance-requirements.service';
 import { TrustedClaimIssuersService } from '~/compliance/trusted-claim-issuers.service';
+import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
+import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
+import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
+import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { DeveloperTestingService } from '~/developer-testing/developer-testing.service';
 import { MetadataService } from '~/metadata/metadata.service';
 import { NetworkService } from '~/network/network.service';
@@ -126,6 +130,7 @@ export class MockNotificationsService {
 
 export class MockHttpService {
   post = jest.fn();
+  request = jest.fn();
 }
 
 export class MockScheduleService {
@@ -141,6 +146,7 @@ export class MockIdentitiesService {
   addSecondaryAccount = jest.fn();
   createMockCdd = jest.fn();
   registerDid = jest.fn();
+  getInvolvedConfidentialTransactions = jest.fn();
 }
 
 export class MockSettlementsService {
@@ -304,4 +310,25 @@ export const mockOfflineTxRepoProvider: ValueProvider<OfflineTxRepo> = {
 export const mockOfflineStarterProvider: ValueProvider<OfflineStarterService> = {
   provide: OfflineStarterService,
   useValue: createMock<OfflineStarterService>(),
+};
+
+export const mockConfidentialAssetsServiceProvider: ValueProvider<ConfidentialAssetsService> = {
+  provide: ConfidentialAssetsService,
+  useValue: createMock<ConfidentialAssetsService>(),
+};
+
+export const mockConfidentialAccountsServiceProvider: ValueProvider<ConfidentialAccountsService> = {
+  provide: ConfidentialAccountsService,
+  useValue: createMock<ConfidentialAccountsService>(),
+};
+
+export const mockConfidentialTransactionsServiceProvider: ValueProvider<ConfidentialTransactionsService> =
+  {
+    provide: ConfidentialTransactionsService,
+    useValue: createMock<ConfidentialTransactionsService>(),
+  };
+
+export const mockConfidentialProofsServiceProvider: ValueProvider<ConfidentialProofsService> = {
+  provide: ConfidentialProofsService,
+  useValue: createMock<ConfidentialProofsService>(),
 };

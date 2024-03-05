@@ -14,6 +14,7 @@ import {
   Claim,
   ClaimScope,
   ClaimType,
+  ConfidentialVenue,
   FungibleAsset,
   NftCollection,
   TickerReservation,
@@ -47,6 +48,8 @@ import { DidDto, IncludeExpiredFilterDto } from '~/common/dto/params.dto';
 import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
 import { ResultsModel } from '~/common/models/results.model';
 import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
+import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
+import { ConfidentialAffirmationModel } from '~/confidential-transactions/models/confidential-affirmation.model';
 import { DeveloperTestingService } from '~/developer-testing/developer-testing.service';
 import { CreateMockIdentityDto } from '~/developer-testing/dto/create-mock-identity.dto';
 import { AddSecondaryAccountParamsDto } from '~/identities/dto/add-secondary-account-params.dto';
@@ -54,8 +57,8 @@ import { RegisterIdentityDto } from '~/identities/dto/register-identity.dto';
 import { IdentitiesService } from '~/identities/identities.service';
 import { createIdentityModel } from '~/identities/identities.util';
 import { CreatedIdentityModel } from '~/identities/models/created-identity.model';
-import { IdentityModel } from '~/identities/models/identity.model';
 import { createIdentityResolver } from '~/identities/models/identity.util';
+import { IdentityDetailsModel } from '~/identities/models/identity-details.model';
 import { PolymeshLogger } from '~/logger/polymesh-logger.service';
 import { GroupedInstructionModel } from '~/settlements/models/grouped-instructions.model';
 import { SettlementsService } from '~/settlements/settlements.service';
@@ -72,6 +75,7 @@ export class IdentitiesController {
     private readonly claimsService: ClaimsService,
     private readonly tickerReservationsService: TickerReservationsService,
     private readonly developerTestingService: DeveloperTestingService,
+    private readonly confidentialTransactionService: ConfidentialTransactionsService,
     private readonly logger: PolymeshLogger
   ) {
     logger.setContext(IdentitiesController.name);
@@ -112,9 +116,9 @@ export class IdentitiesController {
   })
   @ApiOkResponse({
     description: 'Returns basic details of the Identity',
-    type: IdentityModel,
+    type: IdentityDetailsModel,
   })
-  async getIdentityDetails(@Param() { did }: DidDto): Promise<IdentityModel> {
+  async getIdentityDetails(@Param() { did }: DidDto): Promise<IdentityDetailsModel> {
     this.logger.debug(`Get identity details for did ${did}`);
     const identity = await this.identitiesService.findOne(did);
     return createIdentityModel(identity);
@@ -247,7 +251,7 @@ export class IdentitiesController {
   public async getHeldAssets(
     @Param() { did }: DidDto,
     @Query() { size, start }: PaginatedParamsDto
-  ): Promise<ResultsModel<string>> {
+  ): Promise<PaginatedResultsModel<string>> {
     const { data, count, next } = await this.identitiesService.findHeldAssets(
       did,
       size,
@@ -536,7 +540,7 @@ export class IdentitiesController {
     description: 'Failed to execute an extrinsic, or something unexpected',
   })
   @Post('/mock-cdd')
-  public async createMockCdd(@Body() params: CreateMockIdentityDto): Promise<IdentityModel> {
+  public async createMockCdd(@Body() params: CreateMockIdentityDto): Promise<IdentityDetailsModel> {
     const identity = await this.developerTestingService.createMockCdd(params);
     return createIdentityModel(identity);
   }
@@ -621,5 +625,64 @@ export class IdentitiesController {
     const result = await this.settlementsService.findGroupedInstructionsByDid(did);
 
     return new GroupedInstructionModel(result);
+  }
+
+  @ApiTags('confidential-venues')
+  @ApiOperation({
+    summary: 'Get all Confidential Venues owned by an Identity',
+    description: 'This endpoint will provide list of confidential venues for an identity',
+  })
+  @ApiParam({
+    name: 'did',
+    description: 'The DID of the Identity whose Confidential Venues are to be fetched',
+    type: 'string',
+    example: '0x0600000000000000000000000000000000000000000000000000000000000000',
+  })
+  @ApiArrayResponse('string', {
+    description: 'List of IDs of all owned Confidential Venues',
+    paginated: false,
+    example: ['1', '2', '3'],
+  })
+  @Get(':did/confidential-venues')
+  async getConfidentialVenues(@Param() { did }: DidDto): Promise<ResultsModel<ConfidentialVenue>> {
+    const results = await this.confidentialTransactionService.findVenuesByOwner(did);
+    return new ResultsModel({ results });
+  }
+
+  @ApiTags('confidential-transactions')
+  @ApiOperation({
+    summary: 'Get all Confidential Transaction affirmations involving an Identity',
+  })
+  @ApiParam({
+    name: 'did',
+    description: 'The DID of the Identity',
+    type: 'string',
+    example: '0x0600000000000000000000000000000000000000000000000000000000000000',
+  })
+  @ApiArrayResponse('string', {
+    description: 'List of IDs of all owned Confidential Venues',
+    paginated: false,
+    example: ['1', '2', '3'],
+  })
+  @Get(':did/involved-confidential-transactions')
+  async getInvolvedConfidentialTransactions(
+    @Param() { did }: DidDto,
+    @Query() { size, start }: PaginatedParamsDto
+  ): Promise<PaginatedResultsModel<ConfidentialAffirmationModel>> {
+    const {
+      data,
+      count: total,
+      next,
+    } = await this.identitiesService.getInvolvedConfidentialTransactions(
+      did,
+      size,
+      start?.toString()
+    );
+
+    return new PaginatedResultsModel({
+      results: data.map(affirmation => new ConfidentialAffirmationModel(affirmation)),
+      total,
+      next,
+    });
   }
 }

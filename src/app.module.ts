@@ -14,11 +14,16 @@ import { CheckpointsModule } from '~/checkpoints/checkpoints.module';
 import { ClaimsModule } from '~/claims/claims.module';
 import { AppConfigError } from '~/common/errors';
 import { ComplianceModule } from '~/compliance/compliance.module';
+import { ConfidentialAccountsModule } from '~/confidential-accounts/confidential-accounts.module';
+import { ConfidentialAssetsModule } from '~/confidential-assets/confidential-assets.module';
+import { ConfidentialProofsModule } from '~/confidential-proofs/confidential-proofs.module';
+import { ConfidentialTransactionsModule } from '~/confidential-transactions/confidential-transactions.module';
 import { CorporateActionsModule } from '~/corporate-actions/corporate-actions.module';
 import { DeveloperTestingModule } from '~/developer-testing/developer-testing.module';
 import { EventsModule } from '~/events/events.module';
 import { IdentitiesModule } from '~/identities/identities.module';
 import { MetadataModule } from '~/metadata/metadata.module';
+import { MiddlewareModule } from '~/middleware/middleware.module';
 import { NetworkModule } from '~/network/network.module';
 import { NftsModule } from '~/nfts/nfts.module';
 import { NotificationsModule } from '~/notifications/notifications.module';
@@ -44,8 +49,6 @@ import { UsersModule } from '~/users/users.module';
       validationSchema: Joi.object({
         PORT: Joi.number().default(3000),
         POLYMESH_NODE_URL: Joi.string().required(),
-        POLYMESH_MIDDLEWARE_URL: Joi.string(),
-        POLYMESH_MIDDLEWARE_API_KEY: Joi.string(),
         SUBSCRIPTIONS_TTL: Joi.number().default(60000),
         SUBSCRIPTIONS_MAX_HANDSHAKE_TRIES: Joi.number().default(5),
         SUBSCRIPTIONS_HANDSHAKE_RETRY_INTERVAL: Joi.number().default(5000),
@@ -70,8 +73,8 @@ import { UsersModule } from '~/users/users.module';
         ARTEMIS_HOST: Joi.string(),
         ARTEMIS_USERNAME: Joi.string(),
         ARTEMIS_PASSWORD: Joi.string(),
+        PROOF_SERVER_URL: Joi.string().default(''),
       })
-        .and('POLYMESH_MIDDLEWARE_URL', 'POLYMESH_MIDDLEWARE_API_KEY')
         .and('LOCAL_SIGNERS', 'LOCAL_MNEMONICS')
         .and('VAULT_TOKEN', 'VAULT_URL')
         .and('ARTEMIS_HOST', 'ARTEMIS_PASSWORD', 'ARTEMIS_USERNAME'),
@@ -111,6 +114,11 @@ import { UsersModule } from '~/users/users.module';
           OfflineRecorderModule,
         ]
       : []),
+    ConfidentialAssetsModule,
+    ConfidentialAccountsModule,
+    ConfidentialTransactionsModule,
+    ConfidentialProofsModule.register(),
+    MiddlewareModule.register(),
   ],
 })
 export class AppModule {}
