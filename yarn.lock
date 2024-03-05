@@ -1962,6 +1962,28 @@
     tslib "^2.6.2"
     ws "^8.14.2"
 
+"@polymeshassociation/confidential-polymesh-sdk@^1.0.0-alpha.5":
+  version "1.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/confidential-polymesh-sdk/-/confidential-polymesh-sdk-1.0.0-alpha.5.tgz#4b9df0b8c44e422e26fff003d432943ca4d82442"
+  integrity sha512-SZXfidBHW5Kw6yhqVsbkAk1pwIJG7eXPxI4b1X0TwzP/akHGAq0I9YxLD8S9CFjpmRHBHqOTBz21y0oXWh58PA==
+  dependencies:
+    "@apollo/client" "^3.8.1"
+    "@polkadot/api" "10.9.1"
+    "@polkadot/util" "12.4.2"
+    "@polkadot/util-crypto" "12.4.2"
+    bignumber.js "9.0.1"
+    bluebird "^3.7.2"
+    cross-fetch "^4.0.0"
+    dayjs "1.11.9"
+    graphql "^16.8.0"
+    graphql-tag "2.12.6"
+    iso-7064 "^1.1.0"
+    json-stable-stringify "^1.0.2"
+    lodash "^4.17.21"
+    patch-package "^8.0.0"
+    semver "^7.5.4"
+    websocket "^1.0.34"
+
 "@polymeshassociation/fireblocks-signing-manager@^2.3.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@polymeshassociation/fireblocks-signing-manager/-/fireblocks-signing-manager-2.4.0.tgz#950fe46caf09d605f50eddbece2c8be4993e5ae2"
@@ -1990,29 +2012,12 @@
   dependencies:
     "@polymeshassociation/signing-manager-types" "^3.2.0"
 
-"@polymeshassociation/polymesh-sdk@24.0.0-alpha.12":
-  version "24.0.0-alpha.12"
-  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-sdk/-/polymesh-sdk-24.0.0-alpha.12.tgz#7021b2591e48050d8e4074c4ba2ee9c6b58e2dba"
-  integrity sha512-sm6MZOnIFQiQUGc07Te7QKR9xBIripKFEOG6CNONyIVV2xzQCBbSR+zozF/kmsUkgEAYeIYxN5ywfFxLnlOfyA==
-  dependencies:
-    "@apollo/client" "^3.8.1"
-    "@polkadot/api" "10.9.1"
-    "@polkadot/util" "12.4.2"
-    "@polkadot/util-crypto" "12.4.2"
-    bignumber.js "9.0.1"
-    bluebird "^3.7.2"
-    cross-fetch "^4.0.0"
-    dayjs "1.11.9"
-    graphql "^16.8.0"
-    graphql-tag "2.12.6"
-    iso-7064 "^1.1.0"
-    json-stable-stringify "^1.0.2"
-    lodash "^4.17.21"
-    patch-package "^8.0.0"
-    semver "^7.5.4"
-    websocket "^1.0.34"
+"@polymeshassociation/signing-manager-types@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/signing-manager-types/-/signing-manager-types-3.1.0.tgz#645afd036af1666579be8b6cf6f7bf15390183e2"
+  integrity sha512-gLhToq1vRXo+Tx9wvpFGeZyjwSFkmXlgEtVgKuh1uRlAyezrCG2uJB+tBE7Nx8IquuiCisbEpG/A8UHkwgN4Cg==
 
-"@polymeshassociation/signing-manager-types@^3.1.0", "@polymeshassociation/signing-manager-types@^3.2.0":
+"@polymeshassociation/signing-manager-types@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@polymeshassociation/signing-manager-types/-/signing-manager-types-3.2.0.tgz#a02089aae88968bc7a3d20a19a34b1a84361a191"
   integrity sha512-+xJdrxhOyfY0Noq8s9vLsfJKCMU2R3cH0MetWL2aoX/DLmm2p8gX28EtaGBsHNoiZJLGol4NnLR0fphyVsXS0Q==

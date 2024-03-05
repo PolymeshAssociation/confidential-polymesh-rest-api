@@ -6,9 +6,9 @@
 
 ## Description
 
-A REST API wrapper for the Polymesh blockchain.
+A REST API wrapper for the Polymesh Private blockchain.
 
-This version is compatible with chain versions 5.4.x - 6.0.x
+This version is compatible with chain versions 1.0.x
 
 ## Setup
 
@@ -62,8 +62,6 @@ $ yarn test:cov
 PORT=## port in which the server will listen. Defaults to 3000 ##
 POLYMESH_NODE_URL=## websocket URL for a Polymesh node ##
 POLYMESH_MIDDLEWARE_V2_URL=## URL for an instance of the Polymesh GraphQL Middleware Native SubQuery service ##
-POLYMESH_MIDDLEWARE_URL=## URL for an instance of the Polymesh GraphQL Middleware service @deprecated in favour of POLYMESH_MIDDLEWARE_V2_URL##
-POLYMESH_MIDDLEWARE_API_KEY=## API key for the Middleware GraphQL service ##
 LOCAL_SIGNERS=## list of comma separated IDs to refer to the corresponding mnemonic ##
 LOCAL_MNEMONICS=## list of comma separated mnemonics for the signer service (each mnemonic corresponds to a signer in LOCAL_SIGNERS) ##
 
@@ -101,6 +99,9 @@ ARTEMIS_HOST=localhost## Domain or IP of artemis instance ##
 ARTEMIS_USERNAME=artemis ## Artemis user ##
 ARTEMIS_PASSWORD=artemis ## Artemis password ##
 ARTEMIS_PORT=5672 ## Port of AMQP acceptor ##
+
+# Proof Server:
+PROOF_SERVER_URL=## API path where the proof server is hosted
 ```
 
 ## Signing Transactions

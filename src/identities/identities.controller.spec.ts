@@ -7,6 +7,7 @@ import {
   ClaimData,
   ClaimScope,
   ClaimType,
+  ConfidentialLegParty,
   GenericAuthorizationData,
   ResultSet,
 } from '@polymeshassociation/polymesh-sdk/types';
@@ -21,17 +22,20 @@ import { PendingAuthorizationsModel } from '~/authorizations/models/pending-auth
 import { ClaimsService } from '~/claims/claims.service';
 import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
 import { ResultsModel } from '~/common/models/results.model';
+import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { RegisterIdentityDto } from '~/identities/dto/register-identity.dto';
 import { IdentitiesController } from '~/identities/identities.controller';
 import { IdentitiesService } from '~/identities/identities.service';
 import * as identityUtil from '~/identities/identities.util';
 import { AccountModel } from '~/identities/models/account.model';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityDetailsModel } from '~/identities/models/identity-details.model';
 import { IdentitySignerModel } from '~/identities/models/identity-signer.model';
 import { mockPolymeshLoggerProvider } from '~/logger/mock-polymesh-logger';
 import { SettlementsService } from '~/settlements/settlements.service';
 import { testValues } from '~/test-utils/consts';
 import {
+  createMockConfidentialTransaction,
+  createMockConfidentialVenue,
   MockAuthorizationRequest,
   MockIdentity,
   MockTickerReservation,
@@ -41,6 +45,7 @@ import {
   MockAssetService,
   MockAuthorizationsService,
   mockClaimsServiceProvider,
+  mockConfidentialTransactionsServiceProvider,
   mockDeveloperServiceProvider,
   MockIdentitiesService,
   MockSettlementsService,
@@ -66,6 +71,8 @@ describe('IdentitiesController', () => {
 
   const mockDeveloperTestingService = mockDeveloperServiceProvider.useValue;
 
+  let mockConfidentialTransactionService: DeepMocked<ConfidentialTransactionsService>;
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [IdentitiesController],
@@ -78,6 +85,7 @@ describe('IdentitiesController', () => {
         TickerReservationsService,
         mockPolymeshLoggerProvider,
         mockDeveloperServiceProvider,
+        mockConfidentialTransactionsServiceProvider,
       ],
     })
       .overrideProvider(AssetsService)
@@ -93,6 +101,9 @@ describe('IdentitiesController', () => {
       .compile();
 
     mockClaimsService = mockClaimsServiceProvider.useValue as DeepMocked<ClaimsService>;
+    mockConfidentialTransactionService = module.get<typeof mockConfidentialTransactionService>(
+      ConfidentialTransactionsService
+    );
     controller = module.get<IdentitiesController>(IdentitiesController);
   });
 
@@ -168,7 +179,7 @@ describe('IdentitiesController', () => {
 
   describe('getIdentityDetails', () => {
     it("should return the Identity's details", async () => {
-      const mockIdentityDetails = new IdentityModel({
+      const mockIdentityDetails = new IdentityDetailsModel({
         did,
         primaryAccount: {
           account: new AccountModel({
@@ -602,7 +613,7 @@ describe('IdentitiesController', () => {
       identity.areSecondaryAccountsFrozen.mockResolvedValue(false);
       identity.getSecondaryAccounts.mockResolvedValue({ data: [] });
 
-      const identityData = new IdentityModel({
+      const identityData = new IdentityDetailsModel({
         did,
         primaryAccount: new PermissionedAccountModel({
           account: new AccountModel({ address }),
@@ -655,6 +666,67 @@ describe('IdentitiesController', () => {
         pending: expectedInstructionIds,
         failed: expectedInstructionIds,
       });
+    });
+  });
+
+  describe('getConfidentialVenues', () => {
+    it("should return the Identity's Confidential Venues", async () => {
+      const mockResults = [createMockConfidentialVenue()];
+      mockConfidentialTransactionService.findVenuesByOwner.mockResolvedValue(mockResults);
+
+      const result = await controller.getConfidentialVenues({ did });
+      expect(result).toEqual({
+        results: mockResults,
+      });
+    });
+  });
+
+  describe('getInvolvedConfidentialTransactions', () => {
+    const mockAffirmations = {
+      data: [
+        {
+          transaction: createMockConfidentialTransaction(),
+          legId: new BigNumber(0),
+          role: ConfidentialLegParty.Mediator,
+          affirmed: true,
+        },
+      ],
+      next: '0xddddd',
+      count: new BigNumber(1),
+    };
+
+    it('should return the list of involved confidential affirmations', async () => {
+      mockIdentitiesService.getInvolvedConfidentialTransactions.mockResolvedValue(mockAffirmations);
+
+      const result = await controller.getInvolvedConfidentialTransactions(
+        { did },
+        { size: new BigNumber(1) }
+      );
+
+      expect(result).toEqual(
+        new PaginatedResultsModel({
+          results: expect.arrayContaining(mockAffirmations.data),
+          total: new BigNumber(mockAffirmations.count),
+          next: mockAffirmations.next,
+        })
+      );
+    });
+
+    it('should return the list of involved confidential affirmations from a start value', async () => {
+      mockAssetsService.findDocuments.mockResolvedValue(mockAffirmations);
+
+      const result = await controller.getInvolvedConfidentialTransactions(
+        { did },
+        { size: new BigNumber(1), start: 'SOME_START_KEY' }
+      );
+
+      expect(result).toEqual(
+        new PaginatedResultsModel({
+          results: expect.arrayContaining(mockAffirmations.data),
+          total: new BigNumber(mockAffirmations.count),
+          next: mockAffirmations.next,
+        })
+      );
     });
   });
 });
