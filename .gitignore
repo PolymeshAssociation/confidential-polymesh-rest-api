@@ -1,7 +1,7 @@
 # compiled output
 /dist
 /node_modules
-polymesh-rest-api-swagger-spec.json
+confidential-polymesh-rest-api-swagger-spec.json
 
 # Logs
 logs

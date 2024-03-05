@@ -1,5 +1,5 @@
 module.exports = {
-  repositoryUrl: 'https://github.com/PolymeshAssociation/polymesh-rest-api.git',
+  repositoryUrl: 'https://github.com/PolymeshAssociation/confidential-polymesh-rest-api.git',
   branches: [
     'master',
     {
@@ -39,7 +39,7 @@ module.exports = {
     [
       '@semantic-release/github',
       {
-        assets: ['CHANGELOG.md', 'polymesh-rest-api-swagger-spec.json'],
+        assets: ['CHANGELOG.md', 'confidential-polymesh-rest-api-swagger-spec.json'],
       },
     ],
   ],

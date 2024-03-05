@@ -15,7 +15,7 @@ const writeSwaggerSpec = async (): Promise<void> => {
     .setVersion('1.0');
 
   const document = SwaggerModule.createDocument(app, config.build());
-  writeFileSync('./polymesh-rest-api-swagger-spec.json', JSON.stringify(document));
+  writeFileSync('./confidential-polymesh-rest-api-swagger-spec.json', JSON.stringify(document));
   process.exit();
 };
 writeSwaggerSpec();

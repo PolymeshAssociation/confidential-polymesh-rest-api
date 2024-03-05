@@ -12,7 +12,7 @@ def withSecretEnv(List<Map> varAndPasswordList, Closure closure) {
 
 node {
 
-    env.PROJECT_NAME = 'polymesh-rest-api'
+    env.PROJECT_NAME = 'confidential-polymesh-rest-api'
     env.GIT_REPO     = "ssh://git@ssh.gitea.polymesh.dev:4444/Deployment/${PROJECT_NAME}.git"
 
     properties([[$class: 'BuildDiscarderProperty',
