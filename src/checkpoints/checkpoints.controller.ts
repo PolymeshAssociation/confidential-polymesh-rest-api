@@ -270,10 +270,11 @@ export class CheckpointsController {
     );
 
     const resolver: TransactionResolver<CheckpointSchedule> = async ({
-      result: { id: createdScheduleId },
+      result,
       transactions,
       details,
     }) => {
+      const { id: createdScheduleId } = result;
       const {
         schedule: { id, pendingPoints, expiryDate },
         details: scheduleDetails,

@@ -1,6 +1,6 @@
 {
   "name": "polymesh-rest-api",
-  "version": "5.0.0-alpha.1",
+  "version": "5.0.0-alpha.9",
   "description": "Provides a REST like interface for interacting with the Polymesh blockchain",
   "author": "Polymesh Association",
   "private": true,
@@ -32,6 +32,7 @@
     "postgres:dev:reset": "yarn postgres:dev down postgres --volumes && yarn postgres:dev:start",
     "postgres:dev:migration:generate": "source ./postgres.dev.config && yarn postgres migration:generate",
     "postgres:dev:migration:run": "source ./postgres.dev.config && yarn postgres migration:run",
+    "postgres:dev:migration:revert": "source ./postgres.dev.config && yarn postgres migration:revert",
     "postgres:migration:run": "yarn postgres migration:run"
   },
   "dependencies": {
@@ -60,6 +61,7 @@
     "passport-headerapikey": "^1.2.2",
     "pg": "^8.11.3",
     "reflect-metadata": "0.1.13",
+    "rhea-promise": "^3.0.1",
     "rimraf": "3.0.2",
     "rxjs": "^7.5.7",
     "swagger-ui-express": "5.0.0",

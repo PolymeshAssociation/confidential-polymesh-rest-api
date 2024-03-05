@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import {
   FungibleLeg,
   Leg,
@@ -10,31 +12,41 @@ import { flatten } from 'lodash';
 import { promisify } from 'util';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
+import { AppValidationError } from '~/common/errors';
 import { NotificationPayloadModel } from '~/common/models/notification-payload-model';
+import { TransactionPayloadResultModel } from '~/common/models/transaction-payload-result.model';
 import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
+import { ProcessMode } from '~/common/types';
 import { EventType } from '~/events/types';
 import { NotificationPayload } from '~/notifications/types';
-import { TransactionResult } from '~/transactions/transactions.util';
+import { OfflineReceiptModel } from '~/offline-starter/models/offline-receipt.model';
+import { TransactionPayloadResult, TransactionResult } from '~/transactions/transactions.util';
 
-/* istanbul ignore next */
 export function getTxTags(): string[] {
   return flatten(Object.values(TxTags).map(txTag => Object.values(txTag)));
 }
 
-/* istanbul ignore next */
 export function getTxTagsWithModuleNames(): string[] {
   const txTags = getTxTags();
   const moduleNames = Object.values(ModuleName);
   return [...moduleNames, ...txTags];
 }
 
-export type TransactionResponseModel = NotificationPayloadModel | TransactionQueueModel;
+export type TransactionResponseModel =
+  | OfflineReceiptModel
+  | NotificationPayloadModel
+  | TransactionQueueModel
+  | TransactionPayloadResultModel;
 
 /**
  * A helper type that lets a service return a QueueResult or a Subscription Receipt
  */
 export type ServiceReturn<T> = Promise<
-  NotificationPayload<EventType.TransactionUpdate> | TransactionResult<T>
+  | TransactionPayloadResult
+  | NotificationPayload<EventType.TransactionUpdate>
+  | TransactionResult<T>
+  | OfflineReceiptModel
 >;
 
 /**
@@ -48,11 +60,29 @@ export type TransactionResolver<T> = (
  * A helper function that transforms a service result for a controller. A controller can pass a resolver for a detailed return model, otherwise the transaction details will be used as a default
  */
 export const handleServiceResult = <T>(
-  result: NotificationPayloadModel | TransactionResult<T>,
+  result:
+    | TransactionPayloadResult
+    | NotificationPayloadModel
+    | TransactionResult<T>
+    | OfflineReceiptModel,
   resolver: TransactionResolver<T> = basicModelResolver
-): NotificationPayloadModel | Promise<TransactionQueueModel> | TransactionQueueModel => {
+):
+  | TransactionPayloadResultModel
+  | NotificationPayloadModel
+  | Promise<TransactionQueueModel>
+  | TransactionQueueModel
+  | OfflineReceiptModel => {
+  if ('transactionPayload' in result) {
+    const { transactionPayload, details } = result;
+    return new TransactionPayloadResultModel({ transactionPayload, details });
+  }
+
   if ('transactions' in result) {
     return resolver(result);
+  }
+
+  if ('topicName' in result) {
+    return result;
   }
 
   return new NotificationPayloadModel(result);
@@ -86,17 +116,42 @@ export class UnreachableCaseError extends Error {
   }
 }
 
-export const extractTxBase = <T extends TransactionBaseDto>(
+export const extractTxOptions = <T extends TransactionBaseDto>(
   params: T
 ): {
-  base: TransactionBaseDto;
+  options: TransactionOptionsDto;
   args: Omit<T, keyof TransactionBaseDto>;
 } => {
-  const { signer, webhookUrl, dryRun, ...args } = params;
-  return {
-    base: { signer, webhookUrl, dryRun },
-    args,
-  };
+  const { signer, webhookUrl, dryRun, options, ...args } = params;
+  const deprecatedParams = [signer, webhookUrl, dryRun].some(param => !!param);
+
+  if (deprecatedParams && options) {
+    throw new AppValidationError(
+      '"signer", "webhookUrl", "dryRun" are deprecated and should be nested in "options". These fields are mutually exclusive with "options"'
+    );
+  }
+
+  if (options) {
+    return {
+      options,
+      args,
+    };
+  } else {
+    if (!signer) {
+      throw new AppValidationError('"signer" must be present in transaction requests');
+    }
+
+    let processMode = ProcessMode.Submit;
+    if (dryRun) {
+      processMode = ProcessMode.DryRun;
+    } else if (webhookUrl) {
+      processMode = ProcessMode.SubmitWithCallback;
+    }
+    return {
+      options: { signer, webhookUrl, processMode },
+      args,
+    };
+  }
 };
 
 export const isNotNull = <T>(item: T | null): item is T => item !== null;
@@ -107,4 +162,11 @@ export function isFungibleLeg(leg: Leg): leg is FungibleLeg {
 
 export function isNftLeg(leg: Leg): leg is NftLeg {
   return 'nfts' in leg;
+}
+
+/**
+ * helper to clear the event loop. `await` this instead of `setTimeout(fn, 0)`
+ */
+export async function clearEventLoop(): Promise<void> {
+  await new Promise(resolve => setImmediate(resolve));
 }

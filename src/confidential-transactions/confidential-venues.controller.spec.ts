@@ -8,6 +8,7 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 import { when } from 'jest-when';
 
+import { ProcessMode } from '~/common/types';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { ConfidentialVenuesController } from '~/confidential-transactions/confidential-venues.controller';
 import { ConfidentialTransactionLegDto } from '~/confidential-transactions/dto/confidential-transaction-leg.dto';
@@ -61,6 +62,7 @@ describe('ConfidentialVenuesController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
 
       const mockVenue = createMockConfidentialVenue();

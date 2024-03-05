@@ -4,6 +4,7 @@ import { createMock } from '@golevelup/ts-jest';
 import { ValueProvider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { ArtemisService } from '~/artemis/artemis.service';
 import { AuthService } from '~/auth/auth.service';
 import { ClaimsService } from '~/claims/claims.service';
 import { ComplianceRequirementsService } from '~/compliance/compliance-requirements.service';
@@ -16,6 +17,9 @@ import { DeveloperTestingService } from '~/developer-testing/developer-testing.s
 import { MetadataService } from '~/metadata/metadata.service';
 import { NetworkService } from '~/network/network.service';
 import { NftsService } from '~/nfts/nfts.service';
+import { OfflineEventRepo } from '~/offline-recorder/repo/offline-event.repo';
+import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
+import { OfflineTxRepo } from '~/offline-submitter/repos/offline-tx.repo';
 import { SubsidyService } from '~/subsidy/subsidy.service';
 import { ServiceProvider } from '~/test-utils/types';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -38,6 +42,9 @@ export class MockAssetService {
   unfreeze = jest.fn();
   controllerTransfer = jest.fn();
   getOperationHistory = jest.fn();
+  getRequiredMediators = jest.fn();
+  addRequiredMediators = jest.fn();
+  removeRequiredMediators = jest.fn();
 }
 
 export class MockTransactionsService {
@@ -71,10 +78,6 @@ export const mockDeveloperServiceProvider: ValueProvider<DeveloperTestingService
   provide: DeveloperTestingService,
   useValue: createMock<DeveloperTestingService>(),
 };
-
-export class MockSigningService {
-  public getAddressByHandle = jest.fn();
-}
 
 export class MockTickerReservationsService {
   findOne = jest.fn();
@@ -160,6 +163,9 @@ export class MockSettlementsService {
   findVenuesByOwner = jest.fn();
   withdrawAffirmation = jest.fn();
   rescheduleInstruction = jest.fn();
+  affirmInstructionAsMediator = jest.fn();
+  rejectInstructionAsMediator = jest.fn();
+  withdrawAffirmationAsMediator = jest.fn();
 }
 
 export class MockClaimsService {
@@ -284,6 +290,26 @@ export const mockNetworkServiceProvider: ValueProvider<NetworkService> = {
 export const mockClaimsServiceProvider: ValueProvider<ClaimsService> = {
   provide: ClaimsService,
   useValue: createMock<ClaimsService>(),
+};
+
+export const mockArtemisServiceProvider: ValueProvider<ArtemisService> = {
+  provide: ArtemisService,
+  useValue: createMock<ArtemisService>(),
+};
+
+export const mockOfflineRepoProvider: ValueProvider<OfflineEventRepo> = {
+  provide: OfflineEventRepo,
+  useValue: createMock<OfflineEventRepo>(),
+};
+
+export const mockOfflineTxRepoProvider: ValueProvider<OfflineTxRepo> = {
+  provide: OfflineTxRepo,
+  useValue: createMock<OfflineTxRepo>(),
+};
+
+export const mockOfflineStarterProvider: ValueProvider<OfflineStarterService> = {
+  provide: OfflineStarterService,
+  useValue: createMock<OfflineStarterService>(),
 };
 
 export const mockConfidentialAssetsServiceProvider: ValueProvider<ConfidentialAssetsService> = {

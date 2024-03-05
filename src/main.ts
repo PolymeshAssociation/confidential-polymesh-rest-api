@@ -47,7 +47,7 @@ async function bootstrap(): Promise<void> {
   const options = new DocumentBuilder()
     .setTitle(swaggerTitle)
     .setDescription(swaggerDescription)
-    .setVersion('5.0.0-alpha.1');
+    .setVersion('5.0.0-alpha.9');
 
   const configService = app.get<ConfigService>(ConfigService);
 
@@ -75,7 +75,11 @@ async function bootstrap(): Promise<void> {
   });
 
   // Fetch port from env and listen
+
   const port = configService.get('PORT', 3000);
+
+  app.enableShutdownHooks();
+
   await app.listen(port);
 }
 bootstrap();

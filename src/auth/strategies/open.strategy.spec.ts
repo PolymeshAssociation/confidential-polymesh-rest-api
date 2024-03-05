@@ -22,10 +22,12 @@ describe('OpenStrategy', () => {
 
   it('should verify with the open user', async () => {
     let authorizedUser;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    passport.authenticate(AuthStrategy.Open, (request: any, user: Express.User | false | null) => {
-      authorizedUser = user;
-    })({}, {}, {});
+    passport.authenticate(
+      AuthStrategy.Open,
+      (request: unknown, user: Express.User | false | null) => {
+        authorizedUser = user;
+      }
+    )({}, {}, {});
 
     expect(authorizedUser).toEqual(defaultUser);
   });

@@ -8,6 +8,7 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 import { when } from 'jest-when';
 
+import { ProcessMode } from '~/common/types';
 import { ServiceReturn } from '~/common/utils';
 import { ConfidentialTransactionsController } from '~/confidential-transactions/confidential-transactions.controller';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
@@ -123,6 +124,7 @@ describe('ConfidentialTransactionsController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
 
       const transactionId = new BigNumber(1);
@@ -140,6 +142,7 @@ describe('ConfidentialTransactionsController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
 
       const transactionId = new BigNumber(1);

@@ -8,6 +8,7 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 import { when } from 'jest-when';
 
+import { ProcessMode } from '~/common/types';
 import { ServiceReturn } from '~/common/utils';
 import { ConfidentialAssetsController } from '~/confidential-assets/confidential-assets.controller';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
@@ -191,6 +192,7 @@ describe('ConfidentialAssetsController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
       mockConfidentialAssetsService.toggleFreezeConfidentialAsset.mockResolvedValue(
         txResult as unknown as ServiceReturn<void>

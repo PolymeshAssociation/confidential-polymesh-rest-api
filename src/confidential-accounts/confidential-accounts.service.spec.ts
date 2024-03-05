@@ -7,6 +7,7 @@ import {
   TxTags,
 } from '@polymeshassociation/polymesh-sdk/types';
 
+import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
@@ -240,6 +241,7 @@ describe('ConfidentialAccountsService', () => {
     it('should deposit all incoming balances for a Confidential Account', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
       const mockTransactions = {
         blockHash: '0x1',

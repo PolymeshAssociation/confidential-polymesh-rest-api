@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 
 import { IdParamsDto } from '~/common/dto/id-params.dto';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
 import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
 import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
@@ -86,9 +86,9 @@ export class ConfidentialTransactionsController {
   @Post(':id/reject')
   public async rejectConfidentialTransaction(
     @Param() { id }: IdParamsDto,
-    @Body() signerDto: TransactionBaseDto
+    @Body() optionsDto: TransactionOptionsDto
   ): Promise<TransactionResponseModel> {
-    const result = await this.confidentialTransactionsService.rejectTransaction(id, signerDto);
+    const result = await this.confidentialTransactionsService.rejectTransaction(id, optionsDto);
     return handleServiceResult(result);
   }
 
@@ -110,9 +110,9 @@ export class ConfidentialTransactionsController {
   @Post(':id/execute')
   public async executeConfidentialTransaction(
     @Param() { id }: IdParamsDto,
-    @Body() signerDto: TransactionBaseDto
+    @Body() optionsDto: TransactionOptionsDto
   ): Promise<TransactionResponseModel> {
-    const result = await this.confidentialTransactionsService.executeTransaction(id, signerDto);
+    const result = await this.confidentialTransactionsService.executeTransaction(id, optionsDto);
     return handleServiceResult(result);
   }
 

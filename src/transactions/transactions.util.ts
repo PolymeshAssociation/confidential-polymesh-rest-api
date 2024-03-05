@@ -7,6 +7,7 @@ import {
   PayingAccountType,
   ProcedureMethod,
   ProcedureOpts,
+  TransactionPayload,
   TransactionStatus,
 } from '@polymeshassociation/polymesh-sdk/types';
 import {
@@ -15,6 +16,7 @@ import {
   isPolymeshTransactionBatch,
 } from '@polymeshassociation/polymesh-sdk/utils';
 
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
 import {
   AppError,
   AppInternalError,
@@ -26,6 +28,7 @@ import {
 } from '~/common/errors';
 import { BatchTransactionModel } from '~/common/models/batch-transaction.model';
 import { TransactionModel } from '~/common/models/transaction.model';
+import { ProcessMode } from '~/common/types';
 
 export type TransactionDetails = {
   status: TransactionStatus;
@@ -42,6 +45,11 @@ export type TransactionResult<T> = {
   result: T;
   transactions: (TransactionModel | BatchTransactionModel)[];
   details: TransactionDetails;
+};
+
+export type TransactionPayloadResult = {
+  details: TransactionDetails;
+  transactionPayload: TransactionPayload;
 };
 
 type WithArgsProcedureMethod<T> = T extends NoArgsProcedureMethod<unknown, unknown> ? never : T;
@@ -75,8 +83,10 @@ export async function processTransaction<
   method: Method<MethodArgs, ReturnType, TransformedReturnType>,
   args: MethodArgs,
   opts: ProcedureOpts,
-  dryRun = false
-): Promise<TransactionResult<TransformedReturnType>> {
+  transactionOptions: TransactionOptionsDto
+): Promise<TransactionResult<TransformedReturnType> | TransactionPayloadResult> {
+  const { processMode, metadata } = transactionOptions;
+
   try {
     const procedure = await prepareProcedure(method, args, opts);
 
@@ -84,7 +94,7 @@ export async function processTransaction<
 
     const [totalFees, result] = await Promise.all([
       procedure.getTotalFees(),
-      dryRun ? ({} as TransformedReturnType) : procedure.run(),
+      processMode === 'submit' ? procedure.run() : ({} as TransformedReturnType),
     ]);
 
     const {
@@ -103,8 +113,13 @@ export async function processTransaction<
       },
     };
 
-    if (dryRun) {
+    if (processMode === ProcessMode.DryRun) {
       return { details, result, transactions: [] };
+    }
+
+    if (processMode === ProcessMode.Offline) {
+      const transactionPayload = await procedure.toSignablePayload(metadata);
+      return { details, transactionPayload };
     }
 
     const assembleTransactionResponse = <T, R = T>(
@@ -120,7 +135,7 @@ export async function processTransaction<
           transactionTags: transactions.map(({ tag }) => tag),
         };
       } else {
-        throw new Error(
+        throw new AppInternalError(
           'Unsupported transaction details received. Please report this issue to the Polymesh team'
         );
       }
@@ -158,6 +173,15 @@ export function handleSdkError(err: unknown): AppError {
 
   if (isPolymeshError(err)) {
     const { message, code } = err;
+
+    // catch address not present error from the signing manager
+    if (
+      code === ErrorCode.General &&
+      message.includes('not part of the Signing Manager attached to the SDK')
+    ) {
+      throw new AppValidationError(message);
+    }
+
     switch (code) {
       case ErrorCode.NoDataChange:
       case ErrorCode.ValidationError:

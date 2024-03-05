@@ -9,6 +9,7 @@ import {
 
 import { ApiTransactionFailedResponse, ApiTransactionResponse } from '~/common/decorators/swagger';
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
 import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
 import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
@@ -238,7 +239,7 @@ export class ConfidentialAccountsController {
   })
   public async applyAllIncomingAssetBalances(
     @Param() { confidentialAccount }: ConfidentialAccountParamsDto,
-    @Body() params: TransactionBaseDto
+    @Body() params: TransactionOptionsDto
   ): Promise<TransactionResponseModel> {
     const result = await this.confidentialAccountsService.applyAllIncomingAssetBalances(
       confidentialAccount,

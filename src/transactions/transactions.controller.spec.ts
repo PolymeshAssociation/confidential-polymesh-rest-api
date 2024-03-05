@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NetworkService } from '~/network/network.service';
 import { extrinsicWithFees } from '~/test-utils/consts';
 import { mockNetworkServiceProvider } from '~/test-utils/service-mocks';
+import { TransactionDto } from '~/transactions/dto/transaction.dto';
 import { ExtrinsicDetailsModel } from '~/transactions/models/extrinsic-details.model';
 import { TransactionsController } from '~/transactions/transactions.controller';
 
@@ -44,6 +45,25 @@ describe('TransactionsController', () => {
 
         expect(result).toEqual(new ExtrinsicDetailsModel(extrinsicWithFees));
       });
+    });
+  });
+
+  describe('submit', () => {
+    it('should call the service and return the results', async () => {
+      const body = {
+        method: '0x01',
+        signature: '0x02',
+        payload: {},
+        rawPayload: {},
+      } as unknown as TransactionDto;
+
+      const txResult = 'fakeResult';
+
+      mockNetworkService.submitTransaction.mockResolvedValue(txResult);
+
+      const result = await controller.submitTransaction(body);
+      expect(result).toEqual(txResult);
+      expect(mockNetworkService.submitTransaction).toHaveBeenCalledWith(body);
     });
   });
 });

@@ -3,12 +3,14 @@ import { ConfigType } from '@nestjs/config';
 import { TransactionStatus } from '@polymeshassociation/polymesh-sdk/types';
 import { isPolymeshTransaction } from '@polymeshassociation/polymesh-sdk/utils';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { TransactionType } from '~/common/types';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
+import { ProcessMode, TransactionType } from '~/common/types';
 import { EventsService } from '~/events/events.service';
 import { EventType, TransactionUpdateEvent, TransactionUpdatePayload } from '~/events/types';
 import { PolymeshLogger } from '~/logger/polymesh-logger.service';
 import { NotificationPayload } from '~/notifications/types';
+import { OfflineReceiptModel } from '~/offline-starter/models/offline-receipt.model';
+import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
 import { SigningService } from '~/signing/services/signing.service';
 import { SubscriptionsService } from '~/subscriptions/subscriptions.service';
 import { SubscriptionStatus } from '~/subscriptions/types';
@@ -18,6 +20,7 @@ import {
   Method,
   prepareProcedure,
   processTransaction,
+  TransactionPayloadResult,
   TransactionResult,
 } from '~/transactions/transactions.util';
 import { Transaction } from '~/transactions/types';
@@ -56,37 +59,50 @@ export class TransactionsService {
     private readonly subscriptionsService: SubscriptionsService,
     private readonly signingService: SigningService,
     // TODO @polymath-eric handle errors with specialized service
-    private readonly logger: PolymeshLogger
+    private readonly logger: PolymeshLogger,
+    private readonly offlineStarter: OfflineStarterService
   ) {
     logger.setContext(TransactionsService.name);
     this.legitimacySecret = config.legitimacySecret;
   }
 
   public async getSigningAccount(signer: string): Promise<string> {
+    const isAddress = this.signingService.isAddress(signer);
+    if (isAddress) {
+      return signer;
+    }
+
     return this.signingService.getAddressByHandle(signer);
   }
 
   public async submit<MethodArgs, ReturnType, TransformedReturnType = ReturnType>(
     method: Method<MethodArgs, ReturnType, TransformedReturnType>,
     args: MethodArgs,
-    transactionBaseDto: TransactionBaseDto
-  ): Promise<NotificationPayload | TransactionResult<TransformedReturnType>> {
-    const { signer, webhookUrl, dryRun } = transactionBaseDto;
+    transactionOptions: TransactionOptionsDto
+  ): Promise<
+    | TransactionPayloadResult
+    | NotificationPayload
+    | TransactionResult<TransformedReturnType>
+    | OfflineReceiptModel
+  > {
+    const { processMode, signer, webhookUrl, mortality, nonce, metadata } = transactionOptions;
     const signingAccount = await this.getSigningAccount(signer);
+    const sdkOptions = { signingAccount, mortality, nonce };
     try {
-      if (!webhookUrl) {
-        return processTransaction(method, args, { signingAccount }, dryRun);
-      } else {
-        // prepare the procedure so the SDK will run its validation and throw if something isn't right
-        const transaction = await prepareProcedure(method, args, { signingAccount });
-
+      const transaction = await prepareProcedure(method, args, sdkOptions);
+      if (processMode === ProcessMode.SubmitWithCallback) {
         return this.submitAndSubscribe(
           transaction as Transaction,
-          webhookUrl,
+          webhookUrl!,
           this.legitimacySecret
         );
+      } else if (processMode === ProcessMode.AMQP) {
+        return this.offlineStarter.beginTransaction(transaction, metadata);
+      } else {
+        return processTransaction(method, args, sdkOptions, transactionOptions);
       }
     } catch (error) {
+      /* istanbul ignore next */
       throw handleSdkError(error);
     }
   }

@@ -13,8 +13,8 @@ import {
   AppUnprocessableError,
   AppValidationError,
 } from '~/common/errors';
-import { Class } from '~/common/types';
-import { MockVenue } from '~/test-utils/mocks';
+import { Class, ProcessMode } from '~/common/types';
+import { MockPolymeshTransaction, MockVenue } from '~/test-utils/mocks';
 import {
   handleSdkError,
   prepareProcedure,
@@ -47,10 +47,41 @@ describe('processTransaction', () => {
 
       mockIsPolymeshError.mockReturnValue(true);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await expect(processTransaction(mockVenue.modify as any, {}, {})).rejects.toBeInstanceOf(
-        expected
-      );
+      await expect(
+        processTransaction(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockVenue.modify as any,
+          {},
+          {},
+          { processMode: ProcessMode.Submit, signer: 'Alice' }
+        )
+      ).rejects.toBeInstanceOf(expected);
+
+      mockIsPolymeshError.mockReset();
+    });
+
+    it('should catch address not present in signing manager errors', async () => {
+      const mockVenue = new MockVenue();
+
+      const mockError = {
+        code: ErrorCode.General,
+        message: 'The Account is not part of the Signing Manager attached to the SDK',
+      };
+      mockVenue.modify.mockImplementation(() => {
+        throw mockError;
+      });
+
+      mockIsPolymeshError.mockReturnValue(true);
+
+      await expect(
+        processTransaction(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mockVenue.modify as any,
+          {},
+          {},
+          { processMode: ProcessMode.Submit, signer: 'Alice' }
+        )
+      ).rejects.toBeInstanceOf(AppValidationError);
 
       mockIsPolymeshError.mockReset();
     });
@@ -59,8 +90,13 @@ describe('processTransaction', () => {
   describe('it should handle non polymesh errors', () => {
     it('should transform errors into AppInternalError', async () => {
       const mockVenue = new MockVenue();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = processTransaction(mockVenue.modify as any, {}, {});
+      const result = processTransaction(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockVenue.modify as any,
+        {},
+        {},
+        { processMode: ProcessMode.Submit, signer: 'Alice' }
+      );
 
       mockVenue.modify.mockImplementationOnce(() => {
         throw new Error('Foo');
@@ -74,6 +110,48 @@ describe('processTransaction', () => {
       });
 
       await expect(result).rejects.toBeInstanceOf(AppInternalError);
+    });
+  });
+
+  describe('with dryRun', () => {
+    it('should handle dry run process mode', async () => {
+      const mockVenue = new MockVenue();
+
+      const mockTransaction = new MockPolymeshTransaction();
+      const run = mockTransaction.run;
+
+      mockVenue.modify.mockResolvedValue(mockTransaction);
+
+      await processTransaction(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockVenue.modify as any,
+        {},
+        {},
+        { processMode: ProcessMode.DryRun, signer: 'Alice' }
+      );
+
+      expect(run).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('with offline', () => {
+    it('should handle offline process mode', async () => {
+      const mockVenue = new MockVenue();
+
+      const mockTransaction = new MockPolymeshTransaction();
+      const run = mockTransaction.run;
+
+      mockVenue.modify.mockResolvedValue(mockTransaction);
+
+      await processTransaction(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockVenue.modify as any,
+        {},
+        {},
+        { processMode: ProcessMode.Offline, signer: 'Alice' }
+      );
+
+      expect(run).not.toHaveBeenCalled();
     });
   });
 });

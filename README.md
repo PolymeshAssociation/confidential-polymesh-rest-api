@@ -89,21 +89,51 @@ NOTIFICATIONS_LEGITIMACY_SECRET=## A secret used to create HMAC signatures ##
 AUTH_STRATEGY=## list of comma separated auth strategies to use e.g. (`apiKey,open`) ##
 API_KEYS=## list of comma separated api keys to initialize the `apiKey` strategy with ##
 # Datastore:
-REST_POSTGRES_HOST=## Domain or IP indicating of the DB ##
+REST_POSTGRES_HOST=## Domain or IP of DB instance ##
 REST_POSTGRES_PORT=## Port the DB is listening (usually 5432) ##
 REST_POSTGRES_USER=## DB user to use##
 REST_POSTGRES_PASSWORD=## Password of the user ##
 REST_POSTGRES_DATABASE=## Database to use ##
+# Artemis:
+ARTEMIS_HOST=localhost## Domain or IP of artemis instance ##
+ARTEMIS_USERNAME=artemis ## Artemis user ##
+ARTEMIS_PASSWORD=artemis ## Artemis password ##
+ARTEMIS_PORT=5672 ## Port of AMQP acceptor ##
 
 # Proof Server:
 PROOF_SERVER_URL=## API path where the proof server is hosted
 ```
 
-### Signing Transactions
+## Signing Transactions
+
+The REST API has endpoints that submit transactions to the block chain (generally POST routes). Each of these endpoints share a field `"options"` that controls what key will sign it, and how it will be processed.
+
+e.g.
+```
+{
+   options: {
+      signer: "alice",
+      processMode: "submit"
+   },
+   ...transactionParams
+}
+```
+
+Process modes include:
+
+  - `submit` This will create a transaction payload, sign it and submit it to the chain. It will respond with 201 when the transaction has been successfully finalized. (Usually around 15 seconds).
+  - `submitWithCallback` This works like submit, but returns a response as soon as the transaction is submitted. The URL specified by `webhookUrl` will receive updates as the transaction is processed
+  - `dryRun`  This creates and validates a transaction, and returns an estimate of its fees.
+  - `offline` This creates an unsigned transaction and returns a serialized JSON payload. The information can be signed, and then submitted to the chain.
+  - `AMQP` This creates an transaction to be processed by worker processes using an AMQP broker to ensure reliable processing
+
+### Signing Managers
+
+A signing manager is required for `submit` and `submitWithCallback` processing modes.
 
 There are currently three [signing managers](https://github.com/PolymeshAssociation/signing-managers#projects) the REST API can be configured with, the local signer, the [Hashicorp Vault](https://www.vaultproject.io/) signer or the [Fireblocks](https://www.fireblocks.com/) signing manager. If args for multiple are given the precedence order is Vault over Fireblocks over Local.
 
-For any method that modifies chain state, the key to sign with can be controlled with the "signer" field.
+For any method that modifies chain state, the key to sign with can be controlled with the "options.signer" field. This can either be the SS58 encoded address, or an ID that is dependent on the particular signing manager.
 
 1. Vault Signing:
    By setting `VAULT_URL` and `VAULT_TOKEN` an external [Vault](https://www.vaultproject.io/) instance will be used to sign transactions. The URL should point to a transit engine in Vault that has Ed25519 keys in it.
@@ -119,6 +149,46 @@ For any method that modifies chain state, the key to sign with can be controlled
 
 1. Local Signing:
    By using `LOCAL_SIGNERS` and `LOCAL_MNEMONICS` private keys will be initialized in memory. When making a transaction that requires a signer use the corresponding `LOCAL_SIGNERS` (by array offset).
+
+### Offline
+
+Offline payloads contain a field `"unsignedTransaction"`, which consists of 4 keys. `payload` and `rawPayload` correspond to `signPayload` and `signRaw`. You will need to pass one of these to the respective signer you are using (or replicate `signRaw` in your environment). `method` is the hex encoded transaction, which can help verify what is being signed. `metadata` is an echo of whatever is passed as `metadata` in the options. It has no effect on operation, but can be useful for attaching extra info to the transactions, e.g. `clientId` or `memo`
+
+After being generated the signature with the payload can be passed to `/submit` to be submitted to the chain.
+
+This mode introduces the risk transactions are rejected due to incorrect nonces or elapsed lifetime. See the [options DTO](src/common/dto/transaction-options.dto.ts) definition for full details
+
+### AMQP
+
+AMQP is a form on offline processing where the payload will be published on an AMQP topic, instead of being returned. Currently there are a set of "offline" modules, that setup listeners to the different queues.
+
+1. A transaction with "AMQP" mode is received. This gets serialized to an offline payload and published on `Requests`
+1. A signer process subscribes to `Requests`. For each message it generates a signature, and publishes a message on `Signatures`
+1. A submitter process subscribes to `Signatures` and submits to the chain. It publishes to `Finalizations`, for consumer applications to subscribe to
+
+To use AMQP mode a message broker must be configured. The implementation assumes [ArtemisMQ](https://activemq.apache.org/components/artemis/) is used, with an AMQP acceptor. In theory any AMQP 1.0 compliant broker should work though.
+
+If using AMQP, it is strongly recommended to use a persistent data store (i.e postgres). There are two tables related to AMQP processing: `offline_tx` and `offline_event`:
+  - `offline_tx` is a table for the submitter process. This provides a convenient way to query submitted transactions, and to detect ones rejected by the chain for some reason
+  - `offline_event` is a table for the recorder process. This uses Artemis diverts to record every message exchanged in the process, serving as an audit log
+
+If using the project's compose file, an Artemis console will be exposed on `:8181` with `artemis` being both username and password.
+
+### Webhooks (alpha)
+
+Normally the endpoints that create transactions wait for block finalization before returning a response, which normally takes around 15 seconds. When processMode `submitAndCallback` is used the `webhookUrl` param must also be provided. The server will respond after submitting the transaction to the mempool with 202 (Accepted) status code instead of the usual 201 (Created).
+
+Before sending any information to the endpoint the service will first make a request with the header `x-hook-secret` set to a value. The endpoint should return a `200` response with this header copied into the response headers.
+
+If you are a developer you can toggle an endpoint to aid with testing by setting the env `DEVELOPER_UTILS=true` which will enabled a endpoint at `/developer-testing/webhook` which can then be supplied as the `webhookUrl`. Note, the IsUrl validator doesn't recognize `localhost` as a valid URL, either use the IP `127.0.0.1` or create an entry in `/etc/hosts` like `127.0.0.1 rest.local` and use that instead.
+
+#### Warning
+
+Webhooks are still being developed and should not be used against mainnet. However the API should be stable to develop against for testing and demo purposes
+
+Webhooks have yet to implement a Repo to maintain subscription state, or AMQP to ensure it won't miss events. As such it can not guarantee delivery of messages
+
+The plan is to use a datastore and a message broker to make this module production ready
 
 ### Authentication
 
@@ -152,21 +222,8 @@ To implement a new repo for a service, first define an abstract class describing
 
 To implement a new datastore create a new module in `~/datastores` and create a set of `Repos` that will implement the abstract classes. You will then need to set up the `DatastoreModule` to export the module when it is configured. For testing, each implemented Repo should be able to pass the `test` method defined on the abstract class it is implementing.
 
-### Webhooks (alpha)
 
-Normally the endpoints that create transactions wait for block finalization before returning a response, which normally takes around 15 seconds. Alternatively `webhookUrl` can be given in any state modifying endpoint. When given, the server will respond after submitting the transaction to the mempool with 202 (Accepted) status code instead of the usual 201 (Created).
 
-Before sending any information to the endpoint the service will first make a request with the header `x-hook-secret` set to a value. The endpoint should return a `200` response with this header copied into the response headers.
-
-If you are a developer you can toggle an endpoint to aid with testing by setting the env `DEVELOPER_UTILS=true` which will enabled a endpoint at `/developer-testing/webhook` which can then be supplied as the `webhookUrl`. Note, the IsUrl validator doesn't recognize `localhost` as a valid URL, either use the IP `127.0.0.1` or create an entry in `/etc/hosts` like `127.0.0.1 rest.local` and use that instead.
-
-#### Warning
-
-Webhooks are still being developed and should not be used against mainnet. However the API should be stable to develop against for testing and demo purposes
-
-Webhooks have yet to implement a Repo. As such the subscription status is not persisted and the service can not guarantee delivery in the face of ordinary compting faults.
-
-In its current state the transactions would have to be reconciled with chain events as there is a chance for notifications to not be delivered.
 
 ### With docker
 
@@ -179,6 +236,12 @@ docker run -it --env-file .pme.env -p $HOST_PORT:3000 $image_name
 ```
 
 Accessing `http://localhost:<PORT>` will take you to the swagger playground UI where all endpoints are documented and can be tested
+
+### ActiveMQ (Apple Silicone)
+
+You may need to enable "Use Rosetta for x86/amd64 emulation on Apple Silicon" in order for the Artemis AMQP container to start
+
+Currently in "Settings" > "Features in development" in docker desktop
 
 ## License
 

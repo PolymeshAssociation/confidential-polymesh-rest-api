@@ -10,8 +10,13 @@ import {
 import { ConfidentialAsset } from '@polymeshassociation/polymesh-sdk/types';
 
 import { ApiTransactionFailedResponse, ApiTransactionResponse } from '~/common/decorators/swagger';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { handleServiceResult, TransactionResolver, TransactionResponseModel } from '~/common/utils';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
+import {
+  extractTxOptions,
+  handleServiceResult,
+  TransactionResolver,
+  TransactionResponseModel,
+} from '~/common/utils';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { createConfidentialAssetDetailsModel } from '~/confidential-assets/confidential-assets.util';
@@ -251,11 +256,13 @@ export class ConfidentialAssetsController {
   @Post(':confidentialAssetId/freeze')
   async freezeConfidentialAsset(
     @Param() { confidentialAssetId }: ConfidentialAssetIdParamsDto,
-    @Body() body: TransactionBaseDto
+    @Body() body: TransactionOptionsDto
   ): Promise<TransactionResponseModel> {
+    const { options } = extractTxOptions(body);
+
     const result = await this.confidentialAssetsService.toggleFreezeConfidentialAsset(
       confidentialAssetId,
-      body,
+      options,
       true
     );
 
@@ -279,11 +286,12 @@ export class ConfidentialAssetsController {
   @Post(':confidentialAssetId/unfreeze')
   async unfreezeConfidentialAsset(
     @Param() { confidentialAssetId }: ConfidentialAssetIdParamsDto,
-    @Body() body: TransactionBaseDto
+    @Body() body: TransactionOptionsDto
   ): Promise<TransactionResponseModel> {
+    const { options } = extractTxOptions(body);
     const result = await this.confidentialAssetsService.toggleFreezeConfidentialAsset(
       confidentialAssetId,
-      body,
+      options,
       false
     );
 

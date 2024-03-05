@@ -1,15 +1,24 @@
 /* eslint-disable import/first */
 const mockIsPolymeshTransaction = jest.fn();
 const mockIsPolymeshTransactionBatch = jest.fn();
+const mockIsPolymeshError = jest.fn();
 
+import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
+import { SignerPayloadJSON } from '@polkadot/types/types';
 import { BigNumber } from '@polymeshassociation/polymesh-sdk';
 import { ProcedureOpts, TransactionStatus, TxTags } from '@polymeshassociation/polymesh-sdk/types';
+import { when } from 'jest-when';
 
-import { TransactionType } from '~/common/types';
+import { AppInternalError } from '~/common/errors';
+import { ProcessMode, TransactionType } from '~/common/types';
+import { AddressName } from '~/common/utils/amqp';
 import { EventsService } from '~/events/events.service';
 import { EventType } from '~/events/types';
 import { mockPolymeshLoggerProvider } from '~/logger/mock-polymesh-logger';
+import { OfflineReceiptModel } from '~/offline-starter/models/offline-receipt.model';
+import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
+import { SigningService } from '~/signing/services';
 import { mockSigningProvider } from '~/signing/signing.mock';
 import { SubscriptionsService } from '~/subscriptions/subscriptions.service';
 import {
@@ -17,7 +26,11 @@ import {
   MockPolymeshTransaction,
   MockPolymeshTransactionBatch,
 } from '~/test-utils/mocks';
-import { MockEventsService, MockSubscriptionsService } from '~/test-utils/service-mocks';
+import {
+  MockEventsService,
+  mockOfflineStarterProvider,
+  MockSubscriptionsService,
+} from '~/test-utils/service-mocks';
 import transactionsConfig from '~/transactions/config/transactions.config';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { TransactionResult } from '~/transactions/transactions.util';
@@ -27,6 +40,7 @@ jest.mock('@polymeshassociation/polymesh-sdk/utils', () => ({
   ...jest.requireActual('@polymeshassociation/polymesh-sdk/utils'),
   isPolymeshTransaction: mockIsPolymeshTransaction,
   isPolymeshTransactionBatch: mockIsPolymeshTransactionBatch,
+  isPolymeshError: mockIsPolymeshError,
 }));
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -47,11 +61,12 @@ const makeMockMethod = (
 describe('TransactionsService', () => {
   const signer = 'signer';
   const legitimacySecret = 'someSecret';
-  const dryRun = false;
   let service: TransactionsService;
 
   let mockEventsService: MockEventsService;
   let mockSubscriptionsService: MockSubscriptionsService;
+  let mockSigningService: DeepMocked<SigningService>;
+  let mockOfflineStarterService: DeepMocked<OfflineStarterService>;
 
   beforeEach(async () => {
     mockEventsService = new MockEventsService();
@@ -64,6 +79,7 @@ describe('TransactionsService', () => {
         EventsService,
         SubscriptionsService,
         mockSigningProvider,
+        mockOfflineStarterProvider,
         {
           provide: transactionsConfig.KEY,
           useValue: { legitimacySecret },
@@ -77,6 +93,8 @@ describe('TransactionsService', () => {
       .compile();
 
     service = module.get<TransactionsService>(TransactionsService);
+    mockOfflineStarterService = module.get<typeof mockOfflineStarterService>(OfflineStarterService);
+    mockSigningService = module.get<typeof mockSigningService>(SigningService);
   });
 
   afterEach(() => {
@@ -88,19 +106,36 @@ describe('TransactionsService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('getSigningAccount', () => {
+    const address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
+    it('should return the address if given an address', async () => {
+      mockSigningService.isAddress.mockReturnValue(true);
+      const result = await service.getSigningAccount(address);
+
+      expect(result).toEqual(address);
+    });
+
+    it('should return the address when given a handle', async () => {
+      mockSigningService.isAddress.mockReturnValue(false);
+      when(mockSigningService.getAddressByHandle).calledWith('alice').mockResolvedValue(address);
+      const result = await service.getSigningAccount('alice');
+
+      expect(result).toEqual(address);
+    });
+  });
+
   describe('submit (without webhookUrl)', () => {
     it('should process the transaction and return the result', async () => {
       const transaction: MockPolymeshTransaction = new MockPolymeshTransaction();
       mockIsPolymeshTransaction.mockReturnValue(true);
       const mockMethod = makeMockMethod(transaction);
 
-      const { result, transactions, details } = (await service.submit(
+      const { transactions, details } = (await service.submit(
         mockMethod,
         {},
-        { signer }
+        { signer, processMode: ProcessMode.Submit }
       )) as TransactionResult<undefined>;
 
-      expect(result).toBeUndefined();
       expect(transactions).toEqual([
         {
           blockHash: undefined,
@@ -119,13 +154,11 @@ describe('TransactionsService', () => {
       mockIsPolymeshTransactionBatch.mockReturnValue(true);
       const mockMethod = makeMockMethod(transaction);
 
-      const { result, transactions, details } = (await service.submit(
+      const { transactions, details } = (await service.submit(
         mockMethod,
         {},
-        { signer }
+        { signer, processMode: ProcessMode.Submit }
       )) as TransactionResult<undefined>;
-
-      expect(result).toBeUndefined();
 
       expect(transactions).toEqual([
         {
@@ -138,6 +171,78 @@ describe('TransactionsService', () => {
       ]);
 
       expect(details).toBeDefined();
+    });
+
+    it('should forward SDK params when present', async () => {
+      const transaction: MockPolymeshTransactionBatch = new MockPolymeshTransactionBatch();
+      mockIsPolymeshTransaction.mockReturnValue(false);
+      mockIsPolymeshTransactionBatch.mockReturnValue(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockMethod: any = jest.fn().mockResolvedValue(transaction);
+
+      const mortality = {
+        immortal: true,
+      };
+
+      const nonce = new BigNumber(7);
+
+      await service.submit(
+        mockMethod,
+        {},
+        { signer, processMode: ProcessMode.Submit, mortality, nonce }
+      );
+
+      expect(mockMethod).toHaveBeenCalledWith(expect.objectContaining({ nonce, mortality }));
+    });
+
+    it('should transform SDK errors into app errors', async () => {
+      const transaction = new MockPolymeshTransaction();
+      mockIsPolymeshTransaction.mockReturnValue(true);
+      const mockMethod = makeMockMethod(transaction);
+
+      mockIsPolymeshError.mockReturnValue(true);
+      const fakeSdkError = new Error('fake error');
+      transaction.run.mockRejectedValue(fakeSdkError);
+
+      await expect(
+        service.submit(mockMethod, {}, { signer, processMode: ProcessMode.Submit })
+      ).rejects.toThrow(AppInternalError);
+    });
+
+    it('should throw an error if unknown details are received', async () => {
+      const transaction: MockPolymeshTransactionBatch = new MockPolymeshTransactionBatch();
+      mockIsPolymeshTransaction.mockReturnValue(false);
+      mockIsPolymeshTransactionBatch.mockReturnValue(false);
+      const mockMethod = makeMockMethod(transaction);
+
+      await expect(
+        service.submit(mockMethod, {}, { signer, processMode: ProcessMode.Submit })
+      ).rejects.toThrow(AppInternalError);
+    });
+  });
+
+  describe('submit (with AMQP)', () => {
+    const fakeReceipt = new OfflineReceiptModel({
+      id: 'someId',
+      deliveryId: new BigNumber(1),
+      topicName: AddressName.Requests,
+      payload: {} as SignerPayloadJSON,
+      metadata: {},
+    });
+    it('should call the offline starter when given AMQP process mode', async () => {
+      mockOfflineStarterService.beginTransaction.mockResolvedValue(fakeReceipt);
+
+      const transaction = new MockPolymeshTransactionBatch();
+
+      const mockMethod = makeMockMethod(transaction);
+
+      const result = await service.submit(
+        mockMethod,
+        {},
+        { signer, processMode: ProcessMode.AMQP }
+      );
+
+      expect(result).toEqual(fakeReceipt);
     });
   });
 
@@ -170,7 +275,11 @@ describe('TransactionsService', () => {
 
       mockIsPolymeshTransaction.mockReturnValue(true);
 
-      const result = await service.submit(mockMethod, {}, { signer, webhookUrl, dryRun });
+      const result = await service.submit(
+        mockMethod,
+        {},
+        { signer, webhookUrl, processMode: ProcessMode.SubmitWithCallback }
+      );
 
       const expectedPayload = {
         type: TransactionType.Single,
@@ -248,7 +357,11 @@ describe('TransactionsService', () => {
 
       const mockMethod = makeMockMethod(transaction);
 
-      const result = await service.submit(mockMethod, {}, { signer, webhookUrl, dryRun });
+      const result = await service.submit(
+        mockMethod,
+        {},
+        { signer, webhookUrl, processMode: ProcessMode.SubmitWithCallback }
+      );
 
       expect(mockPolymeshLoggerProvider.useValue.error).toHaveBeenCalled();
 

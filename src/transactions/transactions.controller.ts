@@ -1,8 +1,9 @@
-import { Controller, Get, HttpStatus, NotFoundException, Param } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, NotFoundException, Param, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { ApiTransactionFailedResponse } from '~/common/decorators/swagger';
 import { NetworkService } from '~/network/network.service';
+import { TransactionDto } from '~/transactions/dto/transaction.dto';
 import { TransactionHashParamsDto } from '~/transactions/dto/transaction-hash-params.dto';
 import { ExtrinsicDetailsModel } from '~/transactions/models/extrinsic-details.model';
 
@@ -41,5 +42,13 @@ export class TransactionsController {
     }
 
     return new ExtrinsicDetailsModel(result);
+  }
+
+  @Post('/submit')
+  @ApiOkResponse({
+    description: 'Information about the block the transaction was included in',
+  })
+  public async submitTransaction(@Body() transaction: TransactionDto): Promise<unknown> {
+    return await this.networkService.submitTransaction(transaction);
   }
 }

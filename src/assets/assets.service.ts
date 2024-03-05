@@ -6,6 +6,7 @@ import {
   AuthorizationRequest,
   FungibleAsset,
   HistoricAgentOperation,
+  Identity,
   IdentityBalance,
   NftCollection,
   ResultSet,
@@ -15,11 +16,12 @@ import { ControllerTransferDto } from '~/assets/dto/controller-transfer.dto';
 import { CreateAssetDto } from '~/assets/dto/create-asset.dto';
 import { IssueDto } from '~/assets/dto/issue.dto';
 import { RedeemTokensDto } from '~/assets/dto/redeem-tokens.dto';
+import { RequiredMediatorsDto } from '~/assets/dto/required-mediators.dto';
 import { SetAssetDocumentsDto } from '~/assets/dto/set-asset-documents.dto';
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
 import { TransferOwnershipDto } from '~/common/dto/transfer-ownership.dto';
 import { AppNotFoundError } from '~/common/errors';
-import { extractTxBase, ServiceReturn } from '~/common/utils';
+import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { toPortfolioId } from '~/portfolios/portfolios.util';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -81,60 +83,62 @@ export class AssetsService {
     const {
       documents: { set },
     } = await this.findOne(ticker);
-    const { base, args } = extractTxBase(params);
+    const { options, args } = extractTxOptions(params);
 
-    return this.transactionsService.submit(set, args, base);
+    return this.transactionsService.submit(set, args, options);
   }
 
   public async createAsset(params: CreateAssetDto): ServiceReturn<FungibleAsset> {
-    const { base, args } = extractTxBase(params);
+    const { options, args } = extractTxOptions(params);
 
     const createAsset = this.polymeshService.polymeshApi.assets.createAsset;
-    return this.transactionsService.submit(createAsset, args, base);
+    return this.transactionsService.submit(createAsset, args, options);
   }
 
   public async issue(ticker: string, params: IssueDto): ServiceReturn<FungibleAsset> {
-    const { base, args } = extractTxBase(params);
+    const { options, args } = extractTxOptions(params);
     const asset = await this.findFungible(ticker);
 
-    return this.transactionsService.submit(asset.issuance.issue, args, base);
+    return this.transactionsService.submit(asset.issuance.issue, args, options);
   }
 
   public async transferOwnership(
     ticker: string,
     params: TransferOwnershipDto
   ): ServiceReturn<AuthorizationRequest> {
-    const { base, args } = extractTxBase(params);
+    const { options, args } = extractTxOptions(params);
 
     const { transferOwnership } = await this.findOne(ticker);
-    return this.transactionsService.submit(transferOwnership, args, base);
+    return this.transactionsService.submit(transferOwnership, args, options);
   }
 
   public async redeem(ticker: string, params: RedeemTokensDto): ServiceReturn<void> {
-    const { base, args } = extractTxBase(params);
+    const { options, args } = extractTxOptions(params);
 
     const { redeem } = await this.findFungible(ticker);
 
     return this.transactionsService.submit(
       redeem,
       { ...args, from: toPortfolioId(args.from) },
-      base
+      options
     );
   }
 
   public async freeze(ticker: string, transactionBaseDto: TransactionBaseDto): ServiceReturn<void> {
+    const { options } = extractTxOptions(transactionBaseDto);
     const asset = await this.findOne(ticker);
 
-    return this.transactionsService.submit(asset.freeze, {}, transactionBaseDto);
+    return this.transactionsService.submit(asset.freeze, {}, options);
   }
 
   public async unfreeze(
     ticker: string,
     transactionBaseDto: TransactionBaseDto
   ): ServiceReturn<void> {
+    const { options } = extractTxOptions(transactionBaseDto);
     const asset = await this.findOne(ticker);
 
-    return this.transactionsService.submit(asset.unfreeze, {}, transactionBaseDto);
+    return this.transactionsService.submit(asset.unfreeze, {}, options);
   }
 
   public async controllerTransfer(
@@ -142,20 +146,53 @@ export class AssetsService {
     params: ControllerTransferDto
   ): ServiceReturn<void> {
     const {
-      base,
+      options,
       args: { origin, amount },
-    } = extractTxBase(params);
+    } = extractTxOptions(params);
     const { controllerTransfer } = await this.findFungible(ticker);
 
     return this.transactionsService.submit(
       controllerTransfer,
       { originPortfolio: origin.toPortfolioLike(), amount },
-      base
+      options
     );
   }
 
   public async getOperationHistory(ticker: string): Promise<HistoricAgentOperation[]> {
     const asset = await this.findFungible(ticker);
     return asset.getOperationHistory();
+  }
+
+  public async getRequiredMediators(ticker: string): Promise<Identity[]> {
+    const asset = await this.findOne(ticker);
+    return asset.getRequiredMediators().catch(error => {
+      throw handleSdkError(error);
+    });
+  }
+
+  public async addRequiredMediators(
+    ticker: string,
+    params: RequiredMediatorsDto
+  ): ServiceReturn<void> {
+    const {
+      options,
+      args: { mediators },
+    } = extractTxOptions(params);
+    const { addRequiredMediators } = await this.findOne(ticker);
+
+    return this.transactionsService.submit(addRequiredMediators, { mediators }, options);
+  }
+
+  public async removeRequiredMediators(
+    ticker: string,
+    params: RequiredMediatorsDto
+  ): ServiceReturn<void> {
+    const {
+      options,
+      args: { mediators },
+    } = extractTxOptions(params);
+    const { removeRequiredMediators } = await this.findOne(ticker);
+
+    return this.transactionsService.submit(removeRequiredMediators, { mediators }, options);
   }
 }

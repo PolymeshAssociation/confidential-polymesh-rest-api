@@ -7,7 +7,7 @@ import {
 
 import { ApiTransactionResponse } from '~/common/decorators/swagger';
 import { IdParamsDto } from '~/common/dto/id-params.dto';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
 import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
 import { handleServiceResult, TransactionResolver, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
@@ -52,7 +52,9 @@ export class ConfidentialVenuesController {
     type: TransactionQueueModel,
   })
   @Post('create')
-  public async createVenue(@Body() params: TransactionBaseDto): Promise<TransactionResponseModel> {
+  public async createVenue(
+    @Body() params: TransactionOptionsDto
+  ): Promise<TransactionResponseModel> {
     const result = await this.confidentialTransactionsService.createConfidentialVenue(params);
 
     const resolver: TransactionResolver<ConfidentialVenue> = ({

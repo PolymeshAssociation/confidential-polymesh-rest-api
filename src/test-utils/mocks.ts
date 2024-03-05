@@ -85,6 +85,7 @@ export class MockPolymesh {
     getNetworkProperties: jest.fn(),
     getTreasuryAccount: jest.fn(),
     getTransactionByHash: jest.fn(),
+    submitTransaction: jest.fn(),
   };
 
   public assets = {
@@ -109,6 +110,7 @@ export class MockPolymesh {
     modifyPermissions: jest.fn(),
     subsidizeAccount: jest.fn(),
     getSubsidy: jest.fn(),
+    isValidAddress: jest.fn(),
   };
 
   public identities = {
@@ -196,6 +198,9 @@ export class MockAsset {
   public unfreeze = jest.fn();
   public controllerTransfer = jest.fn();
   public getOperationHistory = jest.fn();
+  public getRequiredMediators = jest.fn();
+  public addRequiredMediators = jest.fn();
+  public removeRequiredMediators = jest.fn();
 
   public assetHolders = {
     get: jest.fn(),
@@ -274,6 +279,10 @@ export class MockInstruction {
   public getAffirmations = jest.fn();
   public withdraw = jest.fn();
   public reschedule = jest.fn();
+  public getMediators = jest.fn();
+  public affirmAsMediator = jest.fn();
+  public rejectAsMediator = jest.fn();
+  public withdrawAsMediator = jest.fn();
 }
 
 export class MockVenue {
@@ -418,6 +427,7 @@ class MockPolymeshTransactionBase {
 
   supportsSubsidy = jest.fn().mockReturnValue(false);
   run = jest.fn().mockReturnValue(Promise.resolve());
+  toSignablePayload = jest.fn();
   onStatusChange = jest.fn();
 }
 export class MockPolymeshTransaction extends MockPolymeshTransactionBase {

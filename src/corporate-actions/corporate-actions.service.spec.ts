@@ -7,6 +7,7 @@ import { CaCheckpointType, TxTags } from '@polymeshassociation/polymesh-sdk/type
 
 import { AssetsService } from '~/assets/assets.service';
 import { AssetDocumentDto } from '~/assets/dto/asset-document.dto';
+import { ProcessMode } from '~/common/types';
 import { CorporateActionsService } from '~/corporate-actions/corporate-actions.service';
 import { MockCorporateActionDefaultConfig } from '~/corporate-actions/mocks/corporate-action-default-config.mock';
 import { MockDistributionWithDetails } from '~/corporate-actions/mocks/distribution-with-details.mock';
@@ -98,7 +99,7 @@ describe('CorporateActionsService', () => {
       expect(mockTransactionsService.submit).toHaveBeenCalledWith(
         mockAsset.corporateActions.setDefaultConfig,
         { defaultTaxWithholding: new BigNumber(25) },
-        { signer }
+        expect.objectContaining({ signer })
       );
       expect(mockAssetsService.findFungible).toHaveBeenCalledWith(ticker);
     });
@@ -256,9 +257,9 @@ describe('CorporateActionsService', () => {
         {
           targets: body.targets,
         },
-        {
+        expect.objectContaining({
           signer,
-        }
+        })
       );
     });
   });
@@ -327,9 +328,9 @@ describe('CorporateActionsService', () => {
         expect(mockTransactionsService.submit).toHaveBeenCalledWith(
           distributionWithDetails.distribution.claim,
           undefined,
-          {
+          expect.objectContaining({
             signer,
-          }
+          })
         );
       });
     });
@@ -367,7 +368,7 @@ describe('CorporateActionsService', () => {
       expect(mockTransactionsService.submit).toHaveBeenCalledWith(
         distributionWithDetails.distribution.reclaimFunds,
         undefined,
-        { signer, webhookUrl, dryRun }
+        expect.objectContaining({ signer, processMode: ProcessMode.SubmitWithCallback })
       );
     });
   });

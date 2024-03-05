@@ -2,6 +2,7 @@ import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfidentialAccount } from '@polymeshassociation/polymesh-sdk/types';
 
+import { ProcessMode } from '~/common/types';
 import { ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsController } from '~/confidential-accounts/confidential-accounts.controller';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
@@ -115,6 +116,7 @@ describe('ConfidentialAccountsController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
+        processMode: ProcessMode.Submit,
       };
       mockConfidentialAccountsService.applyAllIncomingAssetBalances.mockResolvedValue(
         txResult as unknown as ServiceReturn<ConfidentialAccount>
