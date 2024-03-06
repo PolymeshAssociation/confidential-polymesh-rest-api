@@ -1,19 +1,28 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
-import { ApiTransactionFailedResponse, ApiTransactionResponse } from '~/common/decorators/swagger';
+import {
+  ApiArrayResponse,
+  ApiTransactionFailedResponse,
+  ApiTransactionResponse,
+} from '~/common/decorators/swagger';
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
 import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
 import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
+import { TransactionHistoryParamsDto } from '~/confidential-accounts/dto/transaction-history-params.dto';
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
+import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
 import { IdentityModel } from '~/identities/models/identity.model';
 
@@ -246,5 +255,59 @@ export class ConfidentialAccountsController {
     );
 
     return handleServiceResult(result);
+  }
+
+  @ApiOperation({
+    summary: 'Get transaction history of a specific Confidential Account',
+    description:
+      'This endpoint retrieves the transaction history for the given Confidential Account',
+  })
+  @ApiParam({
+    name: 'confidentialAccount',
+    description: 'The public key of the Confidential Account',
+    example: '0xdeadbeef00000000000000000000000000000000000000000000000000000000',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'size',
+    description: 'The number of transaction history entries to be fetched',
+    type: 'string',
+    required: false,
+    example: '10',
+  })
+  @ApiQuery({
+    name: 'start',
+    description: 'Start index from which transaction history entries are to be fetched',
+    type: 'string',
+    required: false,
+  })
+  @ApiNotFoundResponse({
+    description: 'No Confidential Account was found',
+  })
+  @ApiArrayResponse(ConfidentialTransactionHistoryModel)
+  @Get(':confidentialAccount/transaction-history')
+  public async getTransactionHistory(
+    @Param()
+    { confidentialAccount }: ConfidentialAccountParamsDto,
+    @Query() { size, start, assetId, eventId }: TransactionHistoryParamsDto
+  ): Promise<PaginatedResultsModel<ConfidentialTransactionHistoryModel>> {
+    const { data, count, next } = await this.confidentialAccountsService.getTransactionHistory(
+      confidentialAccount,
+      { size, start: new BigNumber(start || 0), assetId, eventId }
+    );
+
+    return new PaginatedResultsModel({
+      results: data?.map(
+        ({ asset, amount, eventId: event, createdAt }) =>
+          new ConfidentialTransactionHistoryModel({
+            assetId: asset.toHuman(),
+            amount,
+            eventId: event,
+            createdAt: createdAt?.blockDate,
+          })
+      ),
+      total: count,
+      next,
+    });
   }
 }

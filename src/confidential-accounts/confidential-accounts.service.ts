@@ -4,7 +4,9 @@ import {
   ConfidentialAccount,
   ConfidentialAsset,
   ConfidentialAssetBalance,
+  ConfidentialAssetHistoryEntry,
   ConfidentialTransaction,
+  EventIdEnum,
   Identity,
   ResultSet,
 } from '@polymeshassociation/polymesh-sdk/types';
@@ -117,5 +119,22 @@ export class ConfidentialAccountsService {
     const account = await this.findOne(confidentialAccount);
 
     return account.getTransactions({ direction, size, start });
+  }
+
+  public async getTransactionHistory(
+    confidentialAccount: string,
+    filters: {
+      size?: BigNumber;
+      start?: BigNumber;
+      assetId?: string;
+      eventId?:
+        | EventIdEnum.AccountDeposit
+        | EventIdEnum.AccountWithdraw
+        | EventIdEnum.AccountDepositIncoming;
+    }
+  ): Promise<ResultSet<ConfidentialAssetHistoryEntry>> {
+    const account = await this.findOne(confidentialAccount);
+
+    return account.getTransactionHistory(filters);
   }
 }

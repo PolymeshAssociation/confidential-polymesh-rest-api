@@ -1,10 +1,18 @@
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfidentialAccount } from '@polymeshassociation/polymesh-sdk/types';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
+import {
+  ConfidentialAccount,
+  ConfidentialAssetHistoryEntry,
+  EventIdEnum,
+  ResultSet,
+} from '@polymeshassociation/polymesh-sdk/types';
 
+import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
 import { ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsController } from '~/confidential-accounts/confidential-accounts.controller';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
+import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { testValues } from '~/test-utils/consts';
 import { createMockConfidentialAsset, createMockIdentity } from '~/test-utils/mocks';
 import { mockConfidentialAccountsServiceProvider } from '~/test-utils/service-mocks';
@@ -122,6 +130,59 @@ describe('ConfidentialAccountsController', () => {
 
       const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
       expect(result).toEqual(txResult);
+    });
+  });
+
+  describe('getTransactionHistory', () => {
+    const mockTransactionHistories: ResultSet<ConfidentialAssetHistoryEntry> = {
+      data: [
+        {
+          asset: createMockConfidentialAsset({ id: '0xassetId' }),
+          amount:
+            '0x46247c432a2632d23644aab44da0457506cbf7e712cea7158eeb4324f932161b54b44b6e87ca5028099745482c1ef3fc9901ae760a08f925c8e68c1511f6f77e',
+          eventId: EventIdEnum.AccountDeposit,
+          createdAt: {
+            blockHash: '0xblockhash',
+            blockNumber: new BigNumber(1),
+            blockDate: new Date('05/23/2021'),
+            eventIndex: new BigNumber(1),
+          },
+        },
+      ],
+      next: '0',
+      count: new BigNumber(1),
+    };
+
+    it('should call the service and return the results', async () => {
+      const input = {
+        confidentialAccount,
+        size: new BigNumber(10),
+      };
+
+      mockConfidentialAccountsService.getTransactionHistory.mockResolvedValue(
+        mockTransactionHistories
+      );
+
+      const expectedResults = mockTransactionHistories.data.map(
+        ({ amount, eventId, asset, createdAt }) => {
+          return new ConfidentialTransactionHistoryModel({
+            assetId: asset.toHuman(),
+            amount,
+            eventId,
+            createdAt: createdAt?.blockDate,
+          });
+        }
+      );
+
+      const result = await controller.getTransactionHistory({ confidentialAccount }, input);
+
+      expect(result).toEqual(
+        new PaginatedResultsModel({
+          results: expectedResults,
+          total: new BigNumber(mockTransactionHistories.count as BigNumber),
+          next: mockTransactionHistories.next,
+        })
+      );
     });
   });
 });

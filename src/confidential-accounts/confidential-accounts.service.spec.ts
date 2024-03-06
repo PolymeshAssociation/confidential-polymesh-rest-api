@@ -4,6 +4,9 @@ import { BigNumber } from '@polymeshassociation/polymesh-sdk';
 import {
   ConfidentialAccount,
   ConfidentialAssetBalance,
+  ConfidentialAssetHistoryEntry,
+  EventIdEnum,
+  ResultSet,
   TxTags,
 } from '@polymeshassociation/polymesh-sdk/types';
 
@@ -314,6 +317,41 @@ describe('ConfidentialAccountsService', () => {
         new BigNumber(0)
       );
       expect(result).toEqual(mockTransactions);
+    });
+  });
+
+  describe('getTransactionHistory', () => {
+    it('should return the list of Transaction Histories for an Confidential Account', async () => {
+      const mockHistory: ResultSet<ConfidentialAssetHistoryEntry> = {
+        data: [
+          {
+            asset: createMockConfidentialAsset({ id: '0xassetId' }),
+            amount:
+              '0x46247c432a2632d23644aab44da0457506cbf7e712cea7158eeb4324f932161b54b44b6e87ca5028099745482c1ef3fc9901ae760a08f925c8e68c1511f6f77e',
+            eventId: EventIdEnum.AccountDeposit,
+            createdAt: {
+              blockHash: '0xblockhash',
+              blockNumber: new BigNumber(1),
+              blockDate: new Date('05/23/2021'),
+              eventIndex: new BigNumber(1),
+            },
+          },
+        ],
+        next: new BigNumber(2),
+        count: new BigNumber(2),
+      };
+      const mockAccount = createMockConfidentialAccount();
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockAccount);
+
+      mockAccount.getTransactionHistory.mockResolvedValue(mockHistory);
+
+      const result = await service.getTransactionHistory('SOME_PUBLIC_KEY', {
+        start: new BigNumber(0),
+        size: new BigNumber(10),
+      });
+
+      expect(result).toEqual(mockHistory);
     });
   });
 });
