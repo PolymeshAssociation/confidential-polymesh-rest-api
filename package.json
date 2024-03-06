@@ -1,6 +1,6 @@
 {
   "name": "confidential-polymesh-rest-api",
-  "version": "5.0.0-alpha.9",
+  "version": "1.0.0-alpha.1",
   "description": "Provides a REST like interface for interacting with the Polymesh Private blockchain",
   "author": "Polymesh Association",
   "private": true,
