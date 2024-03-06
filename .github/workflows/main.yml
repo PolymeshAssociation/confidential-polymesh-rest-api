@@ -86,7 +86,7 @@ jobs:
           SSH_KEY_PUBLIC: ${{ vars.SSH_PUBLIC_KEY }}
       - name: release
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_RELEASE_BOT_PAT }}
           GIT_AUTHOR_NAME: ${{ vars.RB_NAME }}
           GIT_AUTHOR_EMAIL: ${{ vars.RB_EMAIL }}
           GIT_COMMITTER_NAME: ${{ vars.RB_COMMITTER_NAME }}
