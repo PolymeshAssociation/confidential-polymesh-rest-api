@@ -5,10 +5,10 @@
     "paths": {
       "~/*": ["src/*"],
       "@polymeshassociation/polymesh-sdk": [
-        "node_modules/@polymeshassociation/confidential-polymesh-sdk"
+        "node_modules/@polymeshassociation/polymesh-private-sdk"
       ],
       "@polymeshassociation/polymesh-sdk/*": [
-        "node_modules/@polymeshassociation/confidential-polymesh-sdk/*"
+        "node_modules/@polymeshassociation/polymesh-private-sdk/*"
       ]
     },
     "plugins": [

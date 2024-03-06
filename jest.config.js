@@ -7,7 +7,7 @@ module.exports = {
   moduleNameMapper: {
     '~/(.*)': '<rootDir>/src/$1',
     '@polymeshassociation/polymesh-sdk(.*)':
-      '<rootDir>/node_modules/@polymeshassociation/confidential-polymesh-sdk$1',
+      '<rootDir>/node_modules/@polymeshassociation/polymesh-private-sdk$1',
   },
   testRegex: '.*\\.spec\\.ts$',
   coverageDirectory: './coverage',
