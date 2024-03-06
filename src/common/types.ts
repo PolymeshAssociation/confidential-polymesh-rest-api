@@ -47,3 +47,9 @@ export enum ProcessMode {
 
   AMQP = 'AMQP',
 }
+
+export enum ConfidentialTransactionDirectionEnum {
+  All = 'All',
+  Incoming = 'Incoming',
+  Outgoing = 'Outgoing',
+}
