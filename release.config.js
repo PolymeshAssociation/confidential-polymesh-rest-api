@@ -17,14 +17,13 @@ module.exports = {
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
     '@semantic-release/changelog',
-    // The next plugin is commented out. It can be added once the polymesh-private dockerhub repo is public
-    // [
-    //   '@semantic-release/exec',
-    //   {
-    //     // eslint-disable-next-line no-template-curly-in-string
-    //     prepareCmd: './prepareRelease.sh ${nextRelease.version}',
-    //   },
-    // ],
+    [
+      '@semantic-release/exec',
+      {
+        // eslint-disable-next-line no-template-curly-in-string
+        prepareCmd: './prepareRelease.sh ${nextRelease.version}',
+      },
+    ],
     [
       '@semantic-release/npm',
       {
