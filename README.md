@@ -1,8 +1,8 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat-square)](https://github.com/standard/semistandard)
-[![Github Actions Workflow](https://github.com/PolymeshAssociation/confidential-polymesh-rest-api/actions/workflows/main.yml/badge.svg)](https://github.com/PolymeshAssociation/confidential-polymesh-rest-api/actions)
-[![Sonar Status](https://sonarcloud.io/api/project_badges/measure?project=PolymeshAssociation_confidential-polymesh-rest-api&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PolymeshAssociation_confidential-polymesh-rest-api)
-[![Issues](https://img.shields.io/github/issues/PolymeshAssociation/confidential-polymesh-rest-api)](https://github.com/PolymeshAssociation/confidential-polymesh-rest-api/issues)
+[![Github Actions Workflow](https://github.com/PolymeshAssociation/polymesh-private-rest-api/actions/workflows/main.yml/badge.svg)](https://github.com/PolymeshAssociation/polymesh-private-rest-api/actions)
+[![Sonar Status](https://sonarcloud.io/api/project_badges/measure?project=PolymeshAssociation_polymesh-private-rest-api&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PolymeshAssociation_polymesh-private-rest-api)
+[![Issues](https://img.shields.io/github/issues/PolymeshAssociation/polymesh-private-rest-api)](https://github.com/PolymeshAssociation/polymesh-private-rest-api/issues)
 
 ## Description
 
