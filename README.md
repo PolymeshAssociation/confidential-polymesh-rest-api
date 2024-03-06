@@ -14,7 +14,7 @@ This version is compatible with chain versions 1.0.x
 
 ### Requirements
 
-- node.js version 14.x
+- node.js version 18.x
 - yarn version 1.x
 
 Note, if running with node v16+ the env `NODE_OPTIONS` should be set to `--unhandled-rejections=warn`
@@ -109,6 +109,7 @@ PROOF_SERVER_URL=## API path where the proof server is hosted
 The REST API has endpoints that submit transactions to the block chain (generally POST routes). Each of these endpoints share a field `"options"` that controls what key will sign it, and how it will be processed.
 
 e.g.
+
 ```
 {
    options: {
@@ -121,11 +122,11 @@ e.g.
 
 Process modes include:
 
-  - `submit` This will create a transaction payload, sign it and submit it to the chain. It will respond with 201 when the transaction has been successfully finalized. (Usually around 15 seconds).
-  - `submitWithCallback` This works like submit, but returns a response as soon as the transaction is submitted. The URL specified by `webhookUrl` will receive updates as the transaction is processed
-  - `dryRun`  This creates and validates a transaction, and returns an estimate of its fees.
-  - `offline` This creates an unsigned transaction and returns a serialized JSON payload. The information can be signed, and then submitted to the chain.
-  - `AMQP` This creates an transaction to be processed by worker processes using an AMQP broker to ensure reliable processing
+- `submit` This will create a transaction payload, sign it and submit it to the chain. It will respond with 201 when the transaction has been successfully finalized. (Usually around 15 seconds).
+- `submitWithCallback` This works like submit, but returns a response as soon as the transaction is submitted. The URL specified by `webhookUrl` will receive updates as the transaction is processed
+- `dryRun` This creates and validates a transaction, and returns an estimate of its fees.
+- `offline` This creates an unsigned transaction and returns a serialized JSON payload. The information can be signed, and then submitted to the chain.
+- `AMQP` This creates an transaction to be processed by worker processes using an AMQP broker to ensure reliable processing
 
 ### Signing Managers
 
@@ -169,8 +170,9 @@ AMQP is a form on offline processing where the payload will be published on an A
 To use AMQP mode a message broker must be configured. The implementation assumes [ArtemisMQ](https://activemq.apache.org/components/artemis/) is used, with an AMQP acceptor. In theory any AMQP 1.0 compliant broker should work though.
 
 If using AMQP, it is strongly recommended to use a persistent data store (i.e postgres). There are two tables related to AMQP processing: `offline_tx` and `offline_event`:
-  - `offline_tx` is a table for the submitter process. This provides a convenient way to query submitted transactions, and to detect ones rejected by the chain for some reason
-  - `offline_event` is a table for the recorder process. This uses Artemis diverts to record every message exchanged in the process, serving as an audit log
+
+- `offline_tx` is a table for the submitter process. This provides a convenient way to query submitted transactions, and to detect ones rejected by the chain for some reason
+- `offline_event` is a table for the recorder process. This uses Artemis diverts to record every message exchanged in the process, serving as an audit log
 
 If using the project's compose file, an Artemis console will be exposed on `:8181` with `artemis` being both username and password.
 
@@ -221,9 +223,6 @@ Currently there are two datastore available:
 To implement a new repo for a service, first define an abstract class describing the desired interface. Also write a test suite to specify the expected behavior from an implementation. Then in the concrete implementations define a new Repo that satisfies the test suite.
 
 To implement a new datastore create a new module in `~/datastores` and create a set of `Repos` that will implement the abstract classes. You will then need to set up the `DatastoreModule` to export the module when it is configured. For testing, each implemented Repo should be able to pass the `test` method defined on the abstract class it is implementing.
-
-
-
 
 ### With docker
 
