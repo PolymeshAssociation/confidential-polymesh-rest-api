@@ -4,11 +4,13 @@ import {
   ConfidentialAccount,
   ConfidentialAsset,
   ConfidentialAssetBalance,
+  ConfidentialTransaction,
   Identity,
   ResultSet,
 } from '@polymeshassociation/polymesh-sdk/types';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { ConfidentialTransactionDirectionEnum } from '~/common/types';
 import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -104,5 +106,16 @@ export class ConfidentialAccountsService {
     const account = await this.findOne(confidentialAccount);
 
     return account.getHeldAssets({ size, start });
+  }
+
+  public async getAssociatedTransactions(
+    confidentialAccount: string,
+    direction: ConfidentialTransactionDirectionEnum,
+    size: BigNumber,
+    start?: BigNumber
+  ): Promise<ResultSet<ConfidentialTransaction>> {
+    const account = await this.findOne(confidentialAccount);
+
+    return account.getTransactions({ direction, size, start });
   }
 }

@@ -7,6 +7,7 @@ import {
   TxTags,
 } from '@polymeshassociation/polymesh-sdk/types';
 
+import { ConfidentialTransactionDirectionEnum } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
@@ -15,6 +16,7 @@ import { testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
   createMockConfidentialAsset,
+  createMockConfidentialTransaction,
   MockPolymesh,
   MockTransaction,
 } from '~/test-utils/mocks';
@@ -286,6 +288,32 @@ describe('ConfidentialAccountsService', () => {
         new BigNumber(0)
       );
       expect(result).toEqual(mockAssets);
+    });
+  });
+
+  describe('getAssociatedTransactions', () => {
+    it('should return the list of transactions associated to a Confidential Account', async () => {
+      const mockTransactions = {
+        data: [
+          createMockConfidentialTransaction({ id: new BigNumber(10) }),
+          createMockConfidentialTransaction({ id: new BigNumber(12) }),
+        ],
+        next: new BigNumber(2),
+        count: new BigNumber(2),
+      };
+      const mockAccount = createMockConfidentialAccount();
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockAccount);
+
+      mockAccount.getTransactions.mockResolvedValue(mockTransactions);
+
+      const result = await service.getAssociatedTransactions(
+        'SOME_PUBLIC_KEY',
+        ConfidentialTransactionDirectionEnum.All,
+        new BigNumber(2),
+        new BigNumber(0)
+      );
+      expect(result).toEqual(mockTransactions);
     });
   });
 });

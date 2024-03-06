@@ -6,10 +6,11 @@ import { EventIdEnum } from '@polymeshassociation/polymesh-sdk/types';
 
 import { EventIdentifierModel } from '~/common/models/event-identifier.model';
 import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
+import { ConfidentialTransactionDirectionEnum } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialAssetsMiddlewareController } from '~/middleware/confidential-assets-middleware/confidential-assets-middleware.controller';
-import { createMockConfidentialAsset } from '~/test-utils/mocks';
+import { createMockConfidentialAsset, createMockConfidentialTransaction } from '~/test-utils/mocks';
 import {
   mockConfidentialAccountsServiceProvider,
   mockConfidentialAssetsServiceProvider,
@@ -121,6 +122,35 @@ describe('ConfidentialAssetsMiddlewareController', () => {
       const result = await controller.getTransactionHistory(
         { confidentialAssetId: 'SOME_ASSET_ID' },
         { size: new BigNumber(10) }
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          results: mockResult.data,
+          next: mockResult.next,
+          total: mockResult.count,
+        })
+      );
+    });
+  });
+
+  describe('getAssociatedTransactions', () => {
+    it('should return the transactions associated with a given Confidential Account', async () => {
+      const mockResult = {
+        data: [createMockConfidentialTransaction()],
+        next: new BigNumber(1),
+        count: new BigNumber(1),
+      };
+
+      mockConfidentialAccountsService.getAssociatedTransactions.mockResolvedValue(mockResult);
+
+      const result = await controller.getAssociatedTransactions(
+        { confidentialAccount: 'SOME_PUBLIC_KEY' },
+        {
+          size: new BigNumber(1),
+          start: new BigNumber(0),
+          direction: ConfidentialTransactionDirectionEnum.All,
+        }
       );
 
       expect(result).toEqual(
