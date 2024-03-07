@@ -7,7 +7,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { ConfidentialTransaction } from '@polymeshassociation/confidential-polymesh-sdk/internal';
+import { ConfidentialTransaction } from '@polymeshassociation/polymesh-private-sdk/internal';
 import { BigNumber } from '@polymeshassociation/polymesh-sdk';
 
 import { ApiArrayResponse } from '~/common/decorators/swagger';
