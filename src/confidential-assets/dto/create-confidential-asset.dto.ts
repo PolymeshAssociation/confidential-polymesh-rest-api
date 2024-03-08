@@ -16,10 +16,11 @@ export class CreateConfidentialAssetDto extends TransactionBaseDto {
   readonly data: string;
 
   @ApiProperty({
-    description: 'List of auditor Confidential Accounts for the Confidential Asset',
+    description:
+      'List of ElGamal public keys required to be included for all proofs related to the asset. The related private keys will be able to decrypt all transactions involving the Confidential Asset',
     isArray: true,
     type: 'string',
-    example: ['0xdeadbeef00000000000000000000000000000000000000000000000000000000'],
+    example: ['0x504aa5aa9f1e446e8f933eefb03c52f4bd6d47770892d5e18a1085ee2010a247'],
   })
   @IsArray()
   @IsString({ each: true })
