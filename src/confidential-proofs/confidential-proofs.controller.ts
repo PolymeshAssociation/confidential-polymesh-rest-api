@@ -131,7 +131,7 @@ export class ConfidentialProofsController {
 
   @ApiTags('confidential-accounts')
   @ApiOperation({
-    summary: 'Verify a sender proof as an auditor',
+    summary: 'Verify a sender proof as a receiver',
   })
   @ApiParam({
     name: 'confidentialAccount',
