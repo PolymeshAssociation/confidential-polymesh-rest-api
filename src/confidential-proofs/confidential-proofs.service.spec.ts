@@ -178,7 +178,7 @@ describe('ConfidentialProofsService', () => {
   });
 
   describe('verifySenderProofAsReceiver', () => {
-    it('should return verify sender proof as an auditor', async () => {
+    it('should return verify sender proof as a receiver', async () => {
       mockLastValueFrom.mockReturnValue({
         status: 200,
         data: {
