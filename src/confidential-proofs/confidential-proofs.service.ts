@@ -116,11 +116,13 @@ export class ConfidentialProofsService {
       `verifySenderProofAsAuditor - Verifying sender proof ${params.senderProof} for account ${confidentialAccount}`
     );
 
-    return this.requestProofServer(
+    const response = await this.requestProofServer<SenderProofVerificationResponseModel>(
       `accounts/${confidentialAccount}/auditor_verify`,
       'POST',
       params
     );
+
+    return new SenderProofVerificationResponseModel(response);
   }
 
   /**
@@ -134,11 +136,13 @@ export class ConfidentialProofsService {
       `verifySenderProofAsReceiver - Verifying sender proof ${params.senderProof} for account ${confidentialAccount}`
     );
 
-    return this.requestProofServer(
+    const response = await this.requestProofServer<SenderProofVerificationResponseModel>(
       `accounts/${confidentialAccount}/receiver_verify`,
       'POST',
       params
     );
+
+    return new SenderProofVerificationResponseModel(response);
   }
 
   /**
@@ -152,11 +156,13 @@ export class ConfidentialProofsService {
       `decryptBalance - Decrypting balance ${params.encryptedValue} for account ${confidentialAccount}`
     );
 
-    return this.requestProofServer<DecryptedBalanceModel>(
+    const response = await this.requestProofServer<DecryptedBalanceModel>(
       `accounts/${confidentialAccount}/decrypt`,
       'POST',
       params
     );
+
+    return new DecryptedBalanceModel(response);
   }
 
   /**

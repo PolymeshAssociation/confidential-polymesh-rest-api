@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -17,8 +18,11 @@ import { BurnConfidentialAssetsDto } from '~/confidential-assets/dto/burn-confid
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
+import { AuditorVerifyTransactionDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
 import { DecryptBalanceDto } from '~/confidential-proofs/dto/decrypt-balance.dto';
 import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver-verify-sender-proof.dto';
+import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
+import { AuditorVerifyTransactionModel } from '~/confidential-proofs/models/auditor-verify-transaction.model';
 import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-balance.model';
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
@@ -102,6 +106,42 @@ export class ConfidentialProofsController {
   ): Promise<TransactionResponseModel> {
     const result = await this.confidentialTransactionsService.senderAffirmLeg(id, body);
     return handleServiceResult(result);
+  }
+
+  @ApiTags('confidential-transactions')
+  @ApiOperation({
+    summary: 'Verify all sender proofs of a transaction as an auditor',
+    description:
+      'This endpoint will verify all asset amounts for legs which have been proven by their sender, and for which the auditor was included',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the Confidential Transaction to be affirmed',
+    type: 'string',
+    example: '123',
+  })
+  @ApiOkResponse({
+    description: 'The proof verification responses for each leg and asset',
+    type: AuditorVerifyProofModel,
+    isArray: true,
+  })
+  @ApiNotFoundResponse({
+    description: 'Transaction was not found',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Proof server returned a non-OK status',
+  })
+  @Post('confidential-transactions/:id/auditor-verify')
+  public async auditorVerifyTransaction(
+    @Param() { id }: IdParamsDto,
+    @Body() body: AuditorVerifyTransactionDto
+  ): Promise<AuditorVerifyTransactionModel> {
+    const verifications = await this.confidentialTransactionsService.verifyTransactionAsAuditor(
+      id,
+      body
+    );
+
+    return new AuditorVerifyTransactionModel({ verifications });
   }
 
   @ApiTags('confidential-accounts')

@@ -11,6 +11,7 @@ import {
 import { when } from 'jest-when';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { AppInternalError, AppNotFoundError } from '~/common/errors';
 import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
@@ -29,6 +30,7 @@ import { PolymeshService } from '~/polymesh/polymesh.service';
 import { testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
+  createMockConfidentialAsset,
   createMockConfidentialTransaction,
   createMockConfidentialVenue,
   createMockIdentity,
@@ -498,6 +500,300 @@ describe('ConfidentialTransactionsService', () => {
       const result = await service.getPendingAffirmsCount(new BigNumber(1));
 
       expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('verifyTransactionAsAuditor', () => {
+    const auditorKey = '0x123';
+    const assetId = 'someAssetId';
+    const legId = new BigNumber(1);
+    const legParams = {
+      id: legId,
+      sender: createMockConfidentialAccount(),
+      receiver: createMockConfidentialAccount(),
+      mediators: [],
+      assetAuditors: [
+        {
+          asset: createMockConfidentialAsset({ id: assetId }),
+          auditors: [createMockConfidentialAccount({ publicKey: auditorKey })],
+        },
+      ],
+    };
+
+    let mockConfidentialTransaction: DeepMocked<ConfidentialTransaction>;
+
+    beforeEach(() => {
+      mockConfidentialTransaction = createMockConfidentialTransaction();
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockConfidentialTransaction);
+    });
+
+    it('should return results when the public key is an auditor for unproven legs', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([legParams]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([]);
+
+      const result = await service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+        auditorKey,
+      });
+
+      expect(result).toEqual([
+        {
+          assetId,
+          amount: null,
+          legId,
+          isAuditor: true,
+          isProved: false,
+          isValid: null,
+          errMsg: null,
+        },
+      ]);
+    });
+
+    it('should return results when the public key is not an auditor for unproven legs', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([
+        {
+          ...legParams,
+          assetAuditors: [
+            {
+              asset: createMockConfidentialAsset({ id: assetId }),
+              auditors: [createMockConfidentialAccount({ publicKey: 'someOtherKey' })],
+            },
+          ],
+        },
+      ]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([]);
+
+      const result = await service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+        auditorKey,
+      });
+
+      expect(result).toEqual([
+        {
+          assetId,
+          amount: null,
+          legId,
+          isAuditor: false,
+          isProved: false,
+          isValid: null,
+          errMsg: null,
+        },
+      ]);
+    });
+
+    it('should return results when the public key is an auditor for a proven legs', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([legParams]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([
+        {
+          legId,
+          proved: true,
+          assetState: [],
+        },
+      ]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([
+        {
+          legId,
+          proofs: [
+            {
+              assetId,
+              proof: 'someProof',
+            },
+          ],
+        },
+      ]);
+
+      mockConfidentialProofsService.verifySenderProofAsAuditor.mockResolvedValue({
+        amount: new BigNumber(100),
+        isValid: true,
+        errMsg: null,
+      });
+
+      const result = await service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+        auditorKey,
+      });
+
+      expect(result).toEqual([
+        {
+          assetId,
+          amount: new BigNumber(100),
+          legId: new BigNumber(1),
+          isAuditor: true,
+          isProved: true,
+          isValid: true,
+          errMsg: null,
+        },
+      ]);
+    });
+
+    it('should return results when the public key is not an auditor for a proven leg', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([
+        {
+          ...legParams,
+          assetAuditors: [
+            {
+              asset: createMockConfidentialAsset({ id: assetId }),
+              auditors: [createMockConfidentialAccount({ publicKey: 'someOtherKey' })],
+            },
+          ],
+        },
+      ]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([
+        {
+          legId,
+          proved: true,
+          assetState: [],
+        },
+      ]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([
+        {
+          legId,
+          proofs: [
+            {
+              assetId,
+              proof: 'someProof',
+            },
+          ],
+        },
+      ]);
+
+      const result = await service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+        auditorKey,
+      });
+
+      expect(result).toEqual([
+        {
+          assetId,
+          amount: null,
+          legId,
+          isAuditor: false,
+          isProved: true,
+          isValid: null,
+          errMsg: null,
+        },
+      ]);
+    });
+
+    it('should return results where auditor is only specified for some assets', async () => {
+      const otherAssetId = 'otherAssetId';
+
+      mockConfidentialTransaction.getLegs.mockResolvedValue([
+        {
+          ...legParams,
+          assetAuditors: [
+            {
+              asset: createMockConfidentialAsset({ id: assetId }),
+              auditors: [createMockConfidentialAccount({ publicKey: auditorKey })],
+            },
+            {
+              asset: createMockConfidentialAsset({ id: otherAssetId }),
+              auditors: [createMockConfidentialAccount({ publicKey: 'someOtherKey' })],
+            },
+          ],
+        },
+        {
+          ...legParams,
+          id: new BigNumber(2),
+        },
+      ]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([
+        {
+          legId,
+          proved: true,
+          assetState: [],
+        },
+        {
+          legId: new BigNumber(2),
+          proved: false,
+        },
+      ]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([
+        {
+          legId,
+          proofs: [
+            {
+              assetId,
+              proof: 'someProof',
+            },
+            {
+              assetId: otherAssetId,
+              proof: 'otherProof',
+            },
+          ],
+        },
+      ]);
+
+      const result = await service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+        auditorKey,
+      });
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          {
+            assetId,
+            amount: new BigNumber(100),
+            legId,
+            isAuditor: true,
+            isProved: true,
+            isValid: true,
+            errMsg: null,
+          },
+          {
+            assetId: otherAssetId,
+            amount: null,
+            legId: new BigNumber(1),
+            isAuditor: false,
+            isProved: true,
+            isValid: null,
+            errMsg: null,
+          },
+          {
+            assetId,
+            amount: null,
+            legId: new BigNumber(2),
+            isAuditor: true,
+            isProved: false,
+            isValid: null,
+            errMsg: null,
+          },
+        ])
+      );
+    });
+
+    it('should throw an error if no legs are present (e.g. after execution)', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([]);
+      return expect(
+        service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+          auditorKey,
+        })
+      ).rejects.toThrow(AppNotFoundError);
+    });
+
+    it('should throw an error if a proof is present in SQ that is not on chain', async () => {
+      mockConfidentialTransaction.getLegs.mockResolvedValue([legParams]);
+      mockConfidentialTransaction.getLegStates.mockResolvedValue([
+        {
+          legId,
+          proved: true,
+          assetState: [],
+        },
+      ]);
+      mockConfidentialTransaction.getSenderProofs.mockResolvedValue([
+        {
+          legId,
+          proofs: [
+            {
+              assetId: 'unknownId',
+              proof: 'someProof',
+            },
+          ],
+        },
+      ]);
+
+      return expect(
+        service.verifyTransactionAsAuditor(mockConfidentialTransaction.id, {
+          auditorKey,
+        })
+      ).rejects.toThrow(AppInternalError);
     });
   });
 });
