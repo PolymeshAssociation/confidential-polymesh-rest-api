@@ -116,7 +116,7 @@ export class ConfidentialProofsController {
   })
   @ApiParam({
     name: 'id',
-    description: 'The ID of the Confidential Transaction to be affirmed',
+    description: 'The ID of the Confidential Transaction to be verified',
     type: 'string',
     example: '123',
   })
