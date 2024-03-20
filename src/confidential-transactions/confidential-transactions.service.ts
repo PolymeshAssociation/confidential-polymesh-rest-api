@@ -8,10 +8,13 @@ import {
 } from '@polymeshassociation/polymesh-sdk/types';
 
 import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { AppValidationError } from '~/common/errors';
+import { AppInternalError, AppNotFoundError, AppValidationError } from '~/common/errors';
 import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
+import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
+import { AuditorVerifyTransactionDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
+import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
 import { createConfidentialTransactionModel } from '~/confidential-transactions/confidential-transactions.util';
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
@@ -175,5 +178,174 @@ export class ConfidentialTransactionsService {
     const transaction = await this.findOne(transactionId);
 
     return transaction.getPendingAffirmsCount();
+  }
+
+  /**
+   *  For a given confidential transaction and auditor this method performs the following steps:
+   *     - Fetch all legs and sender proofs for the transaction
+   *     - Find the legs and assets for which the auditor is involved
+   *     - Verify the relevant proofs for the auditor
+   *     - For non involved proofs, return a response indicating as such
+   */
+  public async verifyTransactionAsAuditor(
+    transactionId: BigNumber,
+    params: AuditorVerifyTransactionDto
+  ): Promise<AuditorVerifyProofModel[]> {
+    const transaction = await this.findOne(transactionId);
+    const [legs, legStates, senderProofs] = await Promise.all([
+      transaction.getLegs(),
+      transaction.getLegStates(),
+      transaction.getSenderProofs(),
+    ]);
+
+    if (legs.length === 0) {
+      throw new AppNotFoundError(
+        transactionId.toString(),
+        'transaction legs (transaction likely executed)'
+      );
+    }
+
+    const auditorPublicKey = params.auditorKey;
+
+    type AuditorLookupEntry =
+      | { isAuditor: false; assetId: string }
+      | { isAuditor: true; assetId: string; auditorId: BigNumber };
+    const legIdToAssetAuditor: Record<string, AuditorLookupEntry[]> = {};
+
+    const insertEntry = (legId: BigNumber, value: AuditorLookupEntry): void => {
+      const key = legId.toString();
+      if (legIdToAssetAuditor[key]) {
+        legIdToAssetAuditor[key].push(value);
+      } else {
+        legIdToAssetAuditor[key] = [value];
+      }
+    };
+
+    legs.forEach(({ id: legId, assetAuditors }) => {
+      assetAuditors.forEach(({ auditors, asset: { id: assetId } }) => {
+        const auditorIndex = auditors.findIndex(({ publicKey }) => publicKey === auditorPublicKey);
+        if (auditorIndex < 0) {
+          insertEntry(legId, { isAuditor: false, assetId });
+        } else {
+          insertEntry(legId, {
+            isAuditor: true,
+            auditorId: new BigNumber(auditorIndex),
+            assetId,
+          });
+        }
+      });
+    });
+
+    const response: AuditorVerifyProofModel[] = [];
+    const proofRequests: {
+      confidentialAccount: string;
+      params: AuditorVerifySenderProofDto;
+      trackers: { legId: BigNumber; assetId: string };
+    }[] = [];
+
+    const legsWithoutStates = legs.filter(leg => !legStates.find(state => state.legId.eq(leg.id)));
+    legsWithoutStates.forEach(leg => {
+      leg.assetAuditors.forEach(assetAuditor => {
+        const isAuditor = !!assetAuditor.auditors.find(
+          legAuditor => legAuditor.publicKey === auditorPublicKey
+        );
+
+        response.push(
+          new AuditorVerifyProofModel({
+            isProved: false,
+            isAuditor,
+            assetId: assetAuditor.asset.id,
+            legId: leg.id,
+            amount: null,
+            isValid: null,
+            errMsg: null,
+          })
+        );
+      });
+    });
+
+    legStates.forEach(({ legId, proved }) => {
+      const key = legId.toString();
+
+      const legProofs = senderProofs.find(senderProof => senderProof.legId.eq(legId));
+
+      // leg proofs may not be present for a proved tx if middleware hasn't synced yet
+      if (!proved || !legProofs) {
+        const legAssets = legIdToAssetAuditor[key];
+        legAssets.forEach(({ assetId, isAuditor }) => {
+          response.push(
+            new AuditorVerifyProofModel({
+              isProved: false,
+              isAuditor,
+              assetId,
+              legId,
+              amount: null,
+              isValid: null,
+              errMsg: null,
+            })
+          );
+        });
+
+        return;
+      }
+
+      const assetAuditorValues = legIdToAssetAuditor[legId.toString()];
+      legProofs.proofs.forEach(({ assetId, proof }) => {
+        const auditorRecord = assetAuditorValues?.find(value => value.assetId === assetId);
+
+        if (!auditorRecord) {
+          throw new AppInternalError('asset auditor from SQ was not found in chain storage');
+        }
+
+        if (auditorRecord.isAuditor) {
+          // Note: we could let users specify amount
+          proofRequests.push({
+            confidentialAccount: auditorPublicKey,
+            params: { senderProof: proof, auditorId: auditorRecord.auditorId, amount: null },
+            trackers: { assetId, legId },
+          });
+        } else {
+          response.push(
+            new AuditorVerifyProofModel({
+              isAuditor: false,
+              isProved: true,
+              assetId,
+              legId,
+              amount: null,
+              isValid: null,
+              errMsg: null,
+            })
+          );
+        }
+      });
+    });
+
+    const proofResponses = await Promise.all(
+      proofRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
+        const proofResponse = await this.confidentialProofsService.verifySenderProofAsAuditor(
+          confidentialAccount,
+          proofParams
+        );
+
+        return {
+          proofResponse,
+          trackers,
+        };
+      })
+    );
+
+    proofResponses.forEach(({ proofResponse, trackers: { assetId, legId } }) => {
+      response.push({
+        isProved: true,
+        isAuditor: true,
+        amount: proofResponse.amount,
+        assetId,
+        legId,
+        errMsg: proofResponse.errMsg,
+        isValid: proofResponse.isValid,
+      });
+    });
+
+    return response.sort((a, b) => a.legId.minus(b.legId).toNumber());
   }
 }

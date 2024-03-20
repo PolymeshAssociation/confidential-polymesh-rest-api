@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 import { IsConfidentialAssetId, IsDid } from '~/common/decorators/validation';
 
@@ -34,7 +34,7 @@ export class ConfidentialTransactionLegDto {
   @IsString()
   readonly receiver: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The Confidential Accounts of the auditors of the transaction leg',
     type: 'string',
     isArray: true,
@@ -42,15 +42,16 @@ export class ConfidentialTransactionLegDto {
   })
   @IsArray()
   @IsString({ each: true })
-  readonly auditors: string[];
+  readonly auditors: string[] = [];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The DID of mediators of the transaction leg',
     type: 'string',
     isArray: true,
     example: ['0x0600000000000000000000000000000000000000000000000000000000000000'],
   })
+  @IsOptional()
   @IsArray()
   @IsDid({ each: true })
-  readonly mediators: string[];
+  readonly mediators: string[] = [];
 }

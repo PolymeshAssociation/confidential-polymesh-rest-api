@@ -191,4 +191,20 @@ describe('ConfidentialProofsController', () => {
       expect(result).toEqual(txResult);
     });
   });
+
+  describe('auditorVerifyTransaction', () => {
+    it('should call the service and return the results', async () => {
+      const input = {
+        auditorKey: 'SOME_PUBLIC_KEY',
+      };
+      const id = new BigNumber(1);
+
+      when(mockConfidentialTransactionsService.verifyTransactionAsAuditor)
+        .calledWith(id, input)
+        .mockResolvedValue([]);
+
+      const result = await controller.auditorVerifyTransaction({ id }, input);
+      expect(result).toEqual({ verifications: [] });
+    });
+  });
 });

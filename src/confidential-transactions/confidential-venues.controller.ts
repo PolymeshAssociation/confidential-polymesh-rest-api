@@ -71,7 +71,7 @@ export class ConfidentialVenuesController {
 
   @ApiTags('confidential-transactions')
   @ApiOperation({
-    summary: 'Create a new Confidential Transactions',
+    summary: 'Create a new Confidential Transaction',
   })
   @ApiParam({
     name: 'id',
