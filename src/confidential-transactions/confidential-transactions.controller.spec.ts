@@ -48,13 +48,9 @@ describe('ConfidentialTransactionsController', () => {
     it('should return the details of Confidential Transaction', async () => {
       const details = {
         status: ConfidentialTransactionStatus.Pending,
-        createdAt: new Date('2023/02/01'),
+        createdAt: new BigNumber(100000),
         memo: 'SOME_MEMO',
         venueId: new BigNumber(1),
-      };
-      const mockDetails = {
-        ...details,
-        createdAt: new BigNumber(details.createdAt.getTime()),
       };
       const mockLeg = {
         id: new BigNumber(0),
@@ -70,7 +66,7 @@ describe('ConfidentialTransactionsController', () => {
       };
       const mockConfidentialTransaction = createMockConfidentialTransaction();
 
-      mockConfidentialTransaction.details.mockResolvedValue(mockDetails);
+      mockConfidentialTransaction.details.mockResolvedValue(details);
       mockConfidentialTransaction.getLegs.mockResolvedValue([mockLeg]);
 
       mockConfidentialTransactionsService.findOne.mockResolvedValue(mockConfidentialTransaction);

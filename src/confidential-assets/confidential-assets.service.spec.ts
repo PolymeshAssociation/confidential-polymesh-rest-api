@@ -375,7 +375,7 @@ describe('ConfidentialAssetsService', () => {
   });
 
   describe('createdAt', () => {
-    it('should return creation event details for a Confidential Account', async () => {
+    it('should return creation event details for a Confidential Asset', async () => {
       const mockResult = {
         blockNumber: new BigNumber('2719172'),
         blockHash: 'someHash',
@@ -395,7 +395,7 @@ describe('ConfidentialAssetsService', () => {
   });
 
   describe('transactionHistory', () => {
-    it('should return creation event details for a Confidential Account', async () => {
+    it('should return transaction history of a Confidential Asset', async () => {
       const mockResult = {
         data: [
           {

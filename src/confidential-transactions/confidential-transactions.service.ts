@@ -4,6 +4,7 @@ import {
   ConfidentialAffirmParty,
   ConfidentialTransaction,
   ConfidentialVenue,
+  EventIdentifier,
   Identity,
 } from '@polymeshassociation/polymesh-sdk/types';
 
@@ -347,5 +348,11 @@ export class ConfidentialTransactionsService {
     });
 
     return response.sort((a, b) => a.legId.minus(b.legId).toNumber());
+  }
+
+  public async createdAt(id: BigNumber): Promise<EventIdentifier | null> {
+    const transaction = await this.findOne(id);
+
+    return transaction.createdAt();
   }
 }
