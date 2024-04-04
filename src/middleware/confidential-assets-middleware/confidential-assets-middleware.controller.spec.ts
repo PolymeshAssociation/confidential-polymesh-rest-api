@@ -5,34 +5,23 @@ import { BigNumber } from '@polymeshassociation/polymesh-sdk';
 import { EventIdEnum } from '@polymeshassociation/polymesh-sdk/types';
 
 import { EventIdentifierModel } from '~/common/models/event-identifier.model';
-import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
-import { ConfidentialTransactionDirectionEnum } from '~/common/types';
-import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialAssetsMiddlewareController } from '~/middleware/confidential-assets-middleware/confidential-assets-middleware.controller';
-import { createMockConfidentialAsset, createMockConfidentialTransaction } from '~/test-utils/mocks';
-import {
-  mockConfidentialAccountsServiceProvider,
-  mockConfidentialAssetsServiceProvider,
-} from '~/test-utils/service-mocks';
+import { mockConfidentialAssetsServiceProvider } from '~/test-utils/service-mocks';
 
 describe('ConfidentialAssetsMiddlewareController', () => {
   let controller: ConfidentialAssetsMiddlewareController;
   let mockConfidentialAssetsService: DeepMocked<ConfidentialAssetsService>;
-  let mockConfidentialAccountsService: DeepMocked<ConfidentialAccountsService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ConfidentialAssetsMiddlewareController],
-      providers: [mockConfidentialAssetsServiceProvider, mockConfidentialAccountsServiceProvider],
+      providers: [mockConfidentialAssetsServiceProvider],
     }).compile();
 
     mockConfidentialAssetsService =
       module.get<typeof mockConfidentialAssetsService>(ConfidentialAssetsService);
 
-    mockConfidentialAccountsService = module.get<typeof mockConfidentialAccountsService>(
-      ConfidentialAccountsService
-    );
     controller = module.get<ConfidentialAssetsMiddlewareController>(
       ConfidentialAssetsMiddlewareController
     );
@@ -68,34 +57,6 @@ describe('ConfidentialAssetsMiddlewareController', () => {
     });
   });
 
-  describe('getHeldAssets', () => {
-    it('should return a paginated list of held Confidential Assets', async () => {
-      const mockAssets = {
-        data: [
-          createMockConfidentialAsset({ id: 'SOME_ASSET_ID_1' }),
-          createMockConfidentialAsset({ id: 'SOME_ASSET_ID_2' }),
-        ],
-        next: new BigNumber(2),
-        count: new BigNumber(2),
-      };
-
-      mockConfidentialAccountsService.findHeldAssets.mockResolvedValue(mockAssets);
-
-      const result = await controller.getHeldAssets(
-        { confidentialAccount: 'SOME_PUBLIC_KEY' },
-        { start: new BigNumber(0), size: new BigNumber(2) }
-      );
-
-      expect(result).toEqual(
-        new PaginatedResultsModel({
-          results: expect.arrayContaining([{ id: 'SOME_ASSET_ID_2' }, { id: 'SOME_ASSET_ID_2' }]),
-          total: new BigNumber(mockAssets.count),
-          next: mockAssets.next,
-        })
-      );
-    });
-  });
-
   describe('getTransactionHistory', () => {
     it('should return the transaction history', async () => {
       const mockResult = {
@@ -122,35 +83,6 @@ describe('ConfidentialAssetsMiddlewareController', () => {
       const result = await controller.getTransactionHistory(
         { confidentialAssetId: 'SOME_ASSET_ID' },
         { size: new BigNumber(10) }
-      );
-
-      expect(result).toEqual(
-        expect.objectContaining({
-          results: mockResult.data,
-          next: mockResult.next,
-          total: mockResult.count,
-        })
-      );
-    });
-  });
-
-  describe('getAssociatedTransactions', () => {
-    it('should return the transactions associated with a given Confidential Account', async () => {
-      const mockResult = {
-        data: [createMockConfidentialTransaction()],
-        next: new BigNumber(1),
-        count: new BigNumber(1),
-      };
-
-      mockConfidentialAccountsService.getAssociatedTransactions.mockResolvedValue(mockResult);
-
-      const result = await controller.getAssociatedTransactions(
-        { confidentialAccount: 'SOME_PUBLIC_KEY' },
-        {
-          size: new BigNumber(1),
-          start: new BigNumber(0),
-          direction: ConfidentialTransactionDirectionEnum.All,
-        }
       );
 
       expect(result).toEqual(

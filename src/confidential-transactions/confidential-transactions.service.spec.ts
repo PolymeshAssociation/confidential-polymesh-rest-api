@@ -283,7 +283,7 @@ describe('ConfidentialTransactionsService', () => {
       mockConfidentialTransactionModel = new ConfidentialTransactionModel({
         id: new BigNumber(1),
         venueId: new BigNumber(1),
-        createdAt: new Date('2024/01/01'),
+        createdAt: new BigNumber(100000),
         status: ConfidentialTransactionStatus.Pending,
         memo: 'Some transfer memo',
         legs: [
@@ -794,6 +794,26 @@ describe('ConfidentialTransactionsService', () => {
           auditorKey,
         })
       ).rejects.toThrow(AppInternalError);
+    });
+  });
+
+  describe('createdAt', () => {
+    it('should return creation event details for a Confidential Transaction', async () => {
+      const mockResult = {
+        blockHash: 'someHash',
+        eventIndex: new BigNumber(1),
+        blockNumber: new BigNumber('2719172'),
+        blockDate: new Date('2023-06-26T01:47:45.000Z'),
+      };
+      const transaction = createMockConfidentialTransaction();
+
+      transaction.createdAt.mockResolvedValue(mockResult);
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(transaction);
+
+      const result = await service.createdAt(new BigNumber(10));
+
+      expect(result).toEqual(mockResult);
     });
   });
 });

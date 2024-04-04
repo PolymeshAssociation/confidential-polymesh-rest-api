@@ -38,7 +38,7 @@ export async function createConfidentialTransactionModel(
     venueId,
     memo,
     status,
-    createdAt: new Date(createdAt.toNumber()),
+    createdAt,
     legs,
   });
 }

@@ -26,11 +26,12 @@ export class ConfidentialTransactionModel {
   readonly venueId: BigNumber;
 
   @ApiProperty({
-    description: 'Date when the Confidential Transaction was created',
+    description: 'Block number at which the Confidential Transaction was created',
     type: 'string',
-    example: new Date('10/14/1987').toISOString(),
+    example: '100000',
   })
-  readonly createdAt: Date;
+  @FromBigNumber()
+  readonly createdAt: BigNumber;
 
   @ApiProperty({
     description: 'The current status of the Confidential Transaction',
