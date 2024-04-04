@@ -9,17 +9,13 @@ import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
 import { ConfidentialTransactionDirectionEnum } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
-import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialAssetModel } from '~/confidential-assets/models/confidential-asset.model';
 import { ConfidentialAccountTransactionsDto } from '~/middleware/dto/confidential-account-transaction-params.dto';
 
 @ApiTags('confidential-accounts')
 @Controller()
 export class ConfidentialAccountsMiddlewareController {
-  constructor(
-    private readonly confidentialAssetsService: ConfidentialAssetsService,
-    private readonly confidentialAccountsService: ConfidentialAccountsService
-  ) {}
+  constructor(private readonly confidentialAccountsService: ConfidentialAccountsService) {}
 
   @ApiTags('confidential-assets')
   @ApiOperation({

@@ -12,7 +12,6 @@ import { BigNumber } from '@polymeshassociation/polymesh-sdk';
 import { PaginatedParamsDto } from '~/common/dto/paginated-params.dto';
 import { EventIdentifierModel } from '~/common/models/event-identifier.model';
 import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
-import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
 import { ConfidentialAssetTransactionModel } from '~/confidential-assets/models/confidential-asset-transaction.model';
@@ -20,10 +19,7 @@ import { ConfidentialAssetTransactionModel } from '~/confidential-assets/models/
 @ApiTags('confidential-assets')
 @Controller()
 export class ConfidentialAssetsMiddlewareController {
-  constructor(
-    private readonly confidentialAssetsService: ConfidentialAssetsService,
-    private readonly confidentialAccountsService: ConfidentialAccountsService
-  ) {}
+  constructor(private readonly confidentialAssetsService: ConfidentialAssetsService) {}
 
   @ApiOperation({
     summary: 'Get creation event data for a Confidential Asset',
