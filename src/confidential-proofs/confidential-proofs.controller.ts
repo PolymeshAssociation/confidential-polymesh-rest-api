@@ -8,9 +8,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { IdParamsDto } from '~/common/dto/id-params.dto';
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
-import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
@@ -27,6 +24,12 @@ import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-ba
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
+import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
+import {
+  handleServiceResult,
+  TransactionResponseModel,
+} from '~/polymesh-rest-api/src/common/utils/functions';
 
 @Controller()
 export class ConfidentialProofsController {

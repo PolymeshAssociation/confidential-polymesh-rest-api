@@ -3,7 +3,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 
 export class ToggleFreezeConfidentialAccountAssetDto extends TransactionBaseDto {
   @ApiProperty({

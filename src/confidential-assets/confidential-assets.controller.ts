@@ -7,11 +7,8 @@ import {
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
-import { ConfidentialAsset } from '@polymeshassociation/polymesh-sdk/types';
+import { ConfidentialAsset } from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { ApiTransactionFailedResponse, ApiTransactionResponse } from '~/common/decorators/swagger';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { handleServiceResult, TransactionResolver, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { createConfidentialAssetDetailsModel } from '~/confidential-assets/confidential-assets.util';
@@ -25,6 +22,16 @@ import { ToggleFreezeConfidentialAccountAssetDto } from '~/confidential-assets/d
 import { ConfidentialAssetDetailsModel } from '~/confidential-assets/models/confidential-asset-details.model';
 import { ConfidentialVenueFilteringDetailsModel } from '~/confidential-assets/models/confidential-venue-filtering-details.model';
 import { CreatedConfidentialAssetModel } from '~/confidential-assets/models/created-confidential-asset.model';
+import {
+  ApiTransactionFailedResponse,
+  ApiTransactionResponse,
+} from '~/polymesh-rest-api/src/common/decorators/swagger';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import {
+  handleServiceResult,
+  TransactionResolver,
+  TransactionResponseModel,
+} from '~/polymesh-rest-api/src/common/utils/functions';
 
 @ApiTags('confidential-assets')
 @Controller('confidential-assets')

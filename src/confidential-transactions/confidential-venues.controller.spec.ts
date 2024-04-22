@@ -1,11 +1,11 @@
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialTransaction,
   ConfidentialVenue,
   TxTags,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 import { when } from 'jest-when';
 
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';

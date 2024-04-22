@@ -3,8 +3,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 
-import { IsDid } from '~/common/decorators/validation';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { IsDid } from '~/polymesh-rest-api/src/common/decorators/validation';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 
 export class CreateConfidentialAssetDto extends TransactionBaseDto {
   @ApiProperty({

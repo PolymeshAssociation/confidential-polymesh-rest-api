@@ -1,11 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AddressOrPair, AugmentedSubmittable, SubmittableExtrinsic } from '@polkadot/api/types';
 import { ISubmittableResult } from '@polkadot/types/types';
-import { Polymesh } from '@polymeshassociation/polymesh-sdk';
+import { ConfidentialPolymesh as Polymesh } from '@polymeshassociation/polymesh-private-sdk';
 
-import { AppError, AppInternalError, AppValidationError } from '~/common/errors';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
-import { ScheduleService } from '~/schedule/schedule.service';
+import {
+  AppError,
+  AppInternalError,
+  AppValidationError,
+} from '~/polymesh-rest-api/src/common/errors';
+import { ScheduleService } from '~/polymesh-rest-api/src/schedule/schedule.service';
 
 @Injectable()
 export class PolymeshService {

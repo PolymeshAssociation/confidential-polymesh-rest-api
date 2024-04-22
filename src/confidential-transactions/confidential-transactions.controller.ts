@@ -7,15 +7,18 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { IdParamsDto } from '~/common/dto/id-params.dto';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
-import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { createConfidentialTransactionModel } from '~/confidential-transactions/confidential-transactions.util';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { ConfidentialTransactionModel } from '~/confidential-transactions/models/confidential-transaction.model';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
+import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
+import {
+  handleServiceResult,
+  TransactionResponseModel,
+} from '~/polymesh-rest-api/src/common/utils/functions';
 
 @ApiTags('confidential-transactions')
 @Controller('confidential-transactions')

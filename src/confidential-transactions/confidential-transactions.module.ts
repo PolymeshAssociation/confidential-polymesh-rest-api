@@ -7,8 +7,8 @@ import { ConfidentialProofsModule } from '~/confidential-proofs/confidential-pro
 import { ConfidentialTransactionsController } from '~/confidential-transactions/confidential-transactions.controller';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { ConfidentialVenuesController } from '~/confidential-transactions/confidential-venues.controller';
-import { IdentitiesModule } from '~/identities/identities.module';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
+import { IdentitiesModule } from '~/polymesh-rest-api/src/identities/identities.module';
 import { TransactionsModule } from '~/transactions/transactions.module';
 
 @Module({
@@ -16,8 +16,8 @@ import { TransactionsModule } from '~/transactions/transactions.module';
     PolymeshModule,
     TransactionsModule,
     ConfidentialAccountsModule,
-    ConfidentialProofsModule.register(),
-    forwardRef(() => IdentitiesModule),
+    forwardRef(() => ConfidentialProofsModule.register()),
+    IdentitiesModule,
   ],
   providers: [ConfidentialTransactionsService],
   controllers: [ConfidentialTransactionsController, ConfidentialVenuesController],

@@ -1,11 +1,11 @@
 /* istanbul ignore file */
 
-import { ConfidentialAsset } from '@polymeshassociation/polymesh-sdk/types';
+import { ConfidentialAsset } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
 import { ConfidentialAssetModel } from '~/confidential-assets/models/confidential-asset.model';
 import { ConfidentialAssetDetailsModel } from '~/confidential-assets/models/confidential-asset-details.model';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
 
 /**
  * Fetch and assemble data for an Confidential Asset

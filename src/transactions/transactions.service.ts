@@ -1,19 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { TransactionStatus } from '@polymeshassociation/polymesh-sdk/types';
-import { isPolymeshTransaction } from '@polymeshassociation/polymesh-sdk/utils';
+import { TransactionStatus } from '@polymeshassociation/polymesh-private-sdk/types';
+import { isPolymeshTransaction } from '@polymeshassociation/polymesh-private-sdk/utils';
 
-import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
-import { ProcessMode, TransactionType } from '~/common/types';
-import { EventsService } from '~/events/events.service';
-import { EventType, TransactionUpdateEvent, TransactionUpdatePayload } from '~/events/types';
-import { PolymeshLogger } from '~/logger/polymesh-logger.service';
-import { NotificationPayload } from '~/notifications/types';
-import { OfflineReceiptModel } from '~/offline-starter/models/offline-receipt.model';
-import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
-import { SigningService } from '~/signing/services/signing.service';
-import { SubscriptionsService } from '~/subscriptions/subscriptions.service';
-import { SubscriptionStatus } from '~/subscriptions/types';
+import { TransactionOptionsDto } from '~/polymesh-rest-api/src/common/dto/transaction-options.dto';
+import { ProcessMode, TransactionType } from '~/polymesh-rest-api/src/common/types';
+import { EventsService } from '~/polymesh-rest-api/src/events/events.service';
+import {
+  EventType,
+  TransactionUpdateEvent,
+  TransactionUpdatePayload,
+} from '~/polymesh-rest-api/src/events/types';
+import { PolymeshLogger } from '~/polymesh-rest-api/src/logger/polymesh-logger.service';
+import { NotificationPayload } from '~/polymesh-rest-api/src/notifications/types';
+import { OfflineReceiptModel } from '~/polymesh-rest-api/src/offline-starter/models/offline-receipt.model';
+import { OfflineStarterService } from '~/polymesh-rest-api/src/offline-starter/offline-starter.service';
+import { SigningService } from '~/polymesh-rest-api/src/signing/services';
+import { SubscriptionsService } from '~/polymesh-rest-api/src/subscriptions/subscriptions.service';
+import { SubscriptionStatus } from '~/polymesh-rest-api/src/subscriptions/types';
 import transactionsConfig from '~/transactions/config/transactions.config';
 import {
   handleSdkError,

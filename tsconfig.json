@@ -3,13 +3,15 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"],
-      "@polymeshassociation/polymesh-sdk": [
-        "node_modules/@polymeshassociation/polymesh-private-sdk"
-      ],
-      "@polymeshassociation/polymesh-sdk/*": [
-        "node_modules/@polymeshassociation/polymesh-private-sdk/*"
-      ]
+      "~/app.module": ["src/app.module"],
+      "~/confidential*": ["src/confidential*"],
+      "~/extended*": ["src/extended*"],
+      "~/middleware/*": ["src/confidential-middleware/*"],
+      "~/test-utils/*": ["src/test-utils/*"],
+      "~/polymesh/*": ["src/polymesh/*"],
+      "~/transactions/*": ["src/transactions/*"],
+      "~/polymesh-rest-api/*": ["src/polymesh-rest-api/*"],
+      "~/*": ["src/polymesh-rest-api/src/*"]
     },
     "plugins": [
       {

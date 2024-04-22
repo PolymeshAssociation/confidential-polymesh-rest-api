@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { IsConfidentialAssetId } from '~/common/decorators/validation';
+import { IsConfidentialAssetId } from '~/confidential-assets/decorators/validation';
 
 export class ConfidentialAssetIdParamsDto {
   @IsConfidentialAssetId()

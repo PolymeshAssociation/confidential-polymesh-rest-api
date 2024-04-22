@@ -1,13 +1,13 @@
 /* istanbul ignore file */
 
-import { ConfidentialTransaction } from '@polymeshassociation/polymesh-sdk/types';
+import { ConfidentialTransaction } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { createConfidentialAccountModel } from '~/confidential-accounts/confidential-accounts.util';
 import { createConfidentialAssetModel } from '~/confidential-assets/confidential-assets.util';
 import { ConfidentialAssetAuditorModel } from '~/confidential-transactions/models/confidential-asset-auditor.model';
 import { ConfidentialLegModel } from '~/confidential-transactions/models/confidential-leg.model';
 import { ConfidentialTransactionModel } from '~/confidential-transactions/models/confidential-transaction.model';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
 
 export async function createConfidentialTransactionModel(
   transaction: ConfidentialTransaction

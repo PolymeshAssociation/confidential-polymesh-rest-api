@@ -1,11 +1,11 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
-import { ToBigNumber } from '~/common/decorators/transformation';
-import { IsBigNumber } from '~/common/decorators/validation';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
+import { ToBigNumber } from '~/polymesh-rest-api/src/common/decorators/transformation';
+import { IsBigNumber } from '~/polymesh-rest-api/src/common/decorators/validation';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 
 export class RemoveAllowedConfidentialVenuesDto extends TransactionBaseDto {
   @ApiProperty({

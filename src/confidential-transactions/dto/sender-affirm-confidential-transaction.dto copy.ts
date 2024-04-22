@@ -1,14 +1,14 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import { Type } from 'class-transformer';
 import { IsArray, ValidateNested } from 'class-validator';
 
-import { ToBigNumber } from '~/common/decorators/transformation';
-import { IsBigNumber } from '~/common/decorators/validation';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
 import { ConfidentialLegAmountDto } from '~/confidential-transactions/dto/confidential-leg-amount.dto';
+import { ToBigNumber } from '~/polymesh-rest-api/src/common/decorators/transformation';
+import { IsBigNumber } from '~/polymesh-rest-api/src/common/decorators/validation';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 
 export class SenderAffirmConfidentialTransactionDto extends TransactionBaseDto {
   @ApiProperty({

@@ -1,22 +1,22 @@
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
+  ConfidentialProcedureMethod,
   ErrorCode,
   Fees,
   GenericPolymeshTransaction,
   NoArgsProcedureMethod,
   PayingAccountType,
-  ProcedureMethod,
   ProcedureOpts,
   TransactionPayload,
   TransactionStatus,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 import {
   isPolymeshError,
   isPolymeshTransaction,
   isPolymeshTransactionBatch,
-} from '@polymeshassociation/polymesh-sdk/utils';
+} from '@polymeshassociation/polymesh-private-sdk/utils';
 
-import { TransactionOptionsDto } from '~/common/dto/transaction-options.dto';
+import { TransactionOptionsDto } from '~/polymesh-rest-api/src/common/dto/transaction-options.dto';
 import {
   AppError,
   AppInternalError,
@@ -25,10 +25,10 @@ import {
   AppUnprocessableError,
   AppValidationError,
   isAppError,
-} from '~/common/errors';
-import { BatchTransactionModel } from '~/common/models/batch-transaction.model';
-import { TransactionModel } from '~/common/models/transaction.model';
-import { ProcessMode } from '~/common/types';
+} from '~/polymesh-rest-api/src/common/errors';
+import { BatchTransactionModel } from '~/polymesh-rest-api/src/common/models/batch-transaction.model';
+import { TransactionModel } from '~/polymesh-rest-api/src/common/models/transaction.model';
+import { ProcessMode } from '~/polymesh-rest-api/src/common/types';
 
 export type TransactionDetails = {
   status: TransactionStatus;
@@ -54,7 +54,7 @@ export type TransactionPayloadResult = {
 
 type WithArgsProcedureMethod<T> = T extends NoArgsProcedureMethod<unknown, unknown> ? never : T;
 
-export type Method<M, R, T> = WithArgsProcedureMethod<ProcedureMethod<M, R, T>>;
+export type Method<M, R, T> = WithArgsProcedureMethod<ConfidentialProcedureMethod<M, R, T>>;
 
 /**
  * a helper function to handle when procedures have args and those without args

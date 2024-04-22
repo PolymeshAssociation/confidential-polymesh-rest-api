@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAccount,
   ConfidentialAsset,
@@ -9,12 +9,12 @@ import {
   EventIdEnum,
   Identity,
   ResultSet,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { ConfidentialTransactionDirectionEnum } from '~/common/types';
-import { extractTxOptions, ServiceReturn } from '~/common/utils';
+import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { PolymeshService } from '~/polymesh/polymesh.service';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
 

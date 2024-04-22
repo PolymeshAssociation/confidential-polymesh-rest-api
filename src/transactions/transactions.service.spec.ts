@@ -6,21 +6,25 @@ const mockIsPolymeshError = jest.fn();
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SignerPayloadJSON } from '@polkadot/types/types';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
-import { ProcedureOpts, TransactionStatus, TxTags } from '@polymeshassociation/polymesh-sdk/types';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
+import {
+  ProcedureOpts,
+  TransactionStatus,
+  TxTags,
+} from '@polymeshassociation/polymesh-private-sdk/types';
 import { when } from 'jest-when';
 
-import { AppInternalError } from '~/common/errors';
-import { ProcessMode, TransactionType } from '~/common/types';
-import { AddressName } from '~/common/utils/amqp';
-import { EventsService } from '~/events/events.service';
-import { EventType } from '~/events/types';
-import { mockPolymeshLoggerProvider } from '~/logger/mock-polymesh-logger';
-import { OfflineReceiptModel } from '~/offline-starter/models/offline-receipt.model';
-import { OfflineStarterService } from '~/offline-starter/offline-starter.service';
-import { SigningService } from '~/signing/services';
-import { mockSigningProvider } from '~/signing/signing.mock';
-import { SubscriptionsService } from '~/subscriptions/subscriptions.service';
+import { AppInternalError } from '~/polymesh-rest-api/src/common/errors';
+import { ProcessMode, TransactionType } from '~/polymesh-rest-api/src/common/types';
+import { AddressName } from '~/polymesh-rest-api/src/common/utils/amqp';
+import { EventsService } from '~/polymesh-rest-api/src/events/events.service';
+import { EventType } from '~/polymesh-rest-api/src/events/types';
+import { mockPolymeshLoggerProvider } from '~/polymesh-rest-api/src/logger/mock-polymesh-logger';
+import { OfflineReceiptModel } from '~/polymesh-rest-api/src/offline-starter/models/offline-receipt.model';
+import { OfflineStarterService } from '~/polymesh-rest-api/src/offline-starter/offline-starter.service';
+import { SigningService } from '~/polymesh-rest-api/src/signing/services';
+import { mockSigningProvider } from '~/polymesh-rest-api/src/signing/signing.mock';
+import { SubscriptionsService } from '~/polymesh-rest-api/src/subscriptions/subscriptions.service';
 import {
   CallbackFn,
   MockPolymeshTransaction,
@@ -36,8 +40,8 @@ import { TransactionsService } from '~/transactions/transactions.service';
 import { TransactionResult } from '~/transactions/transactions.util';
 import { Transaction } from '~/transactions/types';
 
-jest.mock('@polymeshassociation/polymesh-sdk/utils', () => ({
-  ...jest.requireActual('@polymeshassociation/polymesh-sdk/utils'),
+jest.mock('@polymeshassociation/polymesh-private-sdk/utils', () => ({
+  ...jest.requireActual('@polymeshassociation/polymesh-private-sdk/utils'),
   isPolymeshTransaction: mockIsPolymeshTransaction,
   isPolymeshTransactionBatch: mockIsPolymeshTransactionBatch,
   isPolymeshError: mockIsPolymeshError,

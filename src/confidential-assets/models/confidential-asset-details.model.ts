@@ -1,13 +1,16 @@
 /* istanbul ignore file */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
-import { Identity } from '@polymeshassociation/polymesh-sdk/types';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
+import { Identity } from '@polymeshassociation/polymesh-private-sdk/types';
 import { Type } from 'class-transformer';
 
-import { FromBigNumber, FromEntity } from '~/common/decorators/transformation';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
+import {
+  FromBigNumber,
+  FromEntity,
+} from '~/polymesh-rest-api/src/common/decorators/transformation';
 
 export class ConfidentialAssetDetailsModel {
   @ApiProperty({

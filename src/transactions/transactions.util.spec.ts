@@ -1,8 +1,8 @@
 /* eslint-disable import/first */
 const mockIsPolymeshError = jest.fn();
 
-import { PolymeshError } from '@polymeshassociation/polymesh-sdk/base/PolymeshError';
-import { ErrorCode } from '@polymeshassociation/polymesh-sdk/types';
+import { PolymeshError } from '@polymeshassociation/polymesh-private-sdk/base/PolymeshError';
+import { ErrorCode } from '@polymeshassociation/polymesh-private-sdk/types';
 import { when } from 'jest-when';
 
 import {
@@ -12,8 +12,8 @@ import {
   AppUnauthorizedError,
   AppUnprocessableError,
   AppValidationError,
-} from '~/common/errors';
-import { Class, ProcessMode } from '~/common/types';
+} from '~/polymesh-rest-api/src/common/errors';
+import { Class, ProcessMode } from '~/polymesh-rest-api/src/common/types';
 import { MockPolymeshTransaction, MockVenue } from '~/test-utils/mocks';
 import {
   handleSdkError,
@@ -21,8 +21,8 @@ import {
   processTransaction,
 } from '~/transactions/transactions.util';
 
-jest.mock('@polymeshassociation/polymesh-sdk/utils', () => ({
-  ...jest.requireActual('@polymeshassociation/polymesh-sdk/utils'),
+jest.mock('@polymeshassociation/polymesh-private-sdk/utils', () => ({
+  ...jest.requireActual('@polymeshassociation/polymesh-private-sdk/utils'),
   isPolymeshError: mockIsPolymeshError,
 }));
 

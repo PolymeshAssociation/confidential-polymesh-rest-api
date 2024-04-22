@@ -4,8 +4,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsByteLength, IsOptional, IsString, ValidateNested } from 'class-validator';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
 import { ConfidentialTransactionLegDto } from '~/confidential-transactions/dto/confidential-transaction-leg.dto';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 
 export class CreateConfidentialTransactionDto extends TransactionBaseDto {
   @ApiProperty({

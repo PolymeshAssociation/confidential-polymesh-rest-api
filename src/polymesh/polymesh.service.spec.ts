@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshService } from '~/polymesh/polymesh.service';
-import { ScheduleService } from '~/schedule/schedule.service';
+import { ScheduleService } from '~/polymesh-rest-api/src/schedule/schedule.service';
 import { MockPolymesh } from '~/test-utils/mocks';
 import { MockScheduleService } from '~/test-utils/service-mocks';
 

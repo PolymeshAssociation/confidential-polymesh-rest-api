@@ -1,13 +1,16 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialLegParty,
   ConfidentialTransaction,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { FromBigNumber, FromEntity } from '~/common/decorators/transformation';
+import {
+  FromBigNumber,
+  FromEntity,
+} from '~/polymesh-rest-api/src/common/decorators/transformation';
 
 export class ConfidentialAffirmationModel {
   @ApiProperty({

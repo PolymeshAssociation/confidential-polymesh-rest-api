@@ -3,7 +3,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString } from 'class-validator';
 
-import { IsConfidentialAssetId, IsDid } from '~/common/decorators/validation';
+import { IsConfidentialAssetId } from '~/confidential-assets/decorators/validation';
+import { IsDid } from '~/polymesh-rest-api/src/common/decorators/validation';
 
 export class ConfidentialTransactionLegDto {
   @ApiProperty({
