@@ -2002,17 +2002,17 @@
   dependencies:
     "@polymeshassociation/signing-manager-types" "^3.2.0"
 
-"@polymeshassociation/polymesh-private-sdk@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-1.0.1.tgz#cb12ca98e7cda520d421c33a9664fc9de6279a2e"
-  integrity sha512-1qFel4NSH/peDYBdU1/84lyGc61PKTxLYEFpzOFHrQYqGdBrEQH4nuGTBhe/Oyrs2sX3EuHjWL3w9sbIQoYUVw==
+"@polymeshassociation/polymesh-private-sdk@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-1.1.0.tgz#2bbd414d2d711ed7f93486473ceed00eb134eec3"
+  integrity sha512-+kGxSDBE75embZ04CzwczBzelpQLhUjf5tELCbdu64okL/0Iy9q8XJ268Q4onUiF9kFz9/Y6Akc4mnTRyhgaVA==
   dependencies:
     "@apollo/client" "^3.8.1"
     "@noble/curves" "^1.4.0"
     "@polkadot/api" "10.9.1"
     "@polkadot/util" "12.4.2"
     "@polkadot/util-crypto" "12.4.2"
-    "@polymeshassociation/polymesh-sdk" "24.1.0"
+    "@polymeshassociation/polymesh-sdk" "24.2.1"
     bignumber.js "9.0.1"
     bluebird "^3.7.2"
     cross-fetch "^4.0.0"
@@ -2026,10 +2026,10 @@
     semver "^7.5.4"
     websocket "^1.0.34"
 
-"@polymeshassociation/polymesh-sdk@24.1.0":
-  version "24.1.0"
-  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-sdk/-/polymesh-sdk-24.1.0.tgz#542e8fa43f830578988659ba50732ed97a36109f"
-  integrity sha512-8v4+WDX8f1PVxCWdfrNnftriyjSrMT5I8zysxRBCHwNv/riP/3BpqFkdhipg3ksR+5GCYER6ghiFB1Mw0rbh1w==
+"@polymeshassociation/polymesh-sdk@24.2.1":
+  version "24.2.1"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-sdk/-/polymesh-sdk-24.2.1.tgz#3fd4c8da94e39b80e2778bdc3c62b17348d6c331"
+  integrity sha512-mKFqSEC98akG+F/50alDLXnOD/VrkKdf5pXRM6KRY0OCJxOV0JYfEk23NApHx/OCgzu9CiTHElgBMjoRywAp3A==
   dependencies:
     "@apollo/client" "^3.8.1"
     "@polkadot/api" "10.9.1"
