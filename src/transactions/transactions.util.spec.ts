@@ -1,8 +1,8 @@
 /* eslint-disable import/first */
 const mockIsPolymeshError = jest.fn();
 
-import { PolymeshError } from '@polymeshassociation/polymesh-private-sdk/base/PolymeshError';
 import { ErrorCode } from '@polymeshassociation/polymesh-private-sdk/types';
+import { PolymeshError } from '@polymeshassociation/polymesh-sdk/base/PolymeshError';
 import { when } from 'jest-when';
 
 import {
