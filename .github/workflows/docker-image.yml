@@ -9,13 +9,13 @@ on:
 
 jobs:
   push_to_registry:
-    with:
-      submodules: 'true'
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
