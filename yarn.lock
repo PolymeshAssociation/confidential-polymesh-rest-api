@@ -1198,6 +1198,13 @@
   dependencies:
     "@noble/hashes" "1.3.2"
 
+"@noble/curves@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.0.tgz#f05771ef64da724997f69ee1261b2417a49522d6"
+  integrity sha512-p+4cb332SFCrReJkCYe8Xzm0OWi4Jji5jVdIZRL/PmacmDkFNw6MrrV+gGpiPxLHbV+zKFRywUWbaseT+tZRXg==
+  dependencies:
+    "@noble/hashes" "1.4.0"
+
 "@noble/hashes@1.3.1":
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.1.tgz#8831ef002114670c603c458ab8b11328406953a9"
@@ -1207,6 +1214,11 @@
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.2.tgz#6f26dbc8fbc7205873ce3cee2f690eba0d421b39"
   integrity sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==
+
+"@noble/hashes@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
+  integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1990,10 +2002,34 @@
   dependencies:
     "@polymeshassociation/signing-manager-types" "^3.2.0"
 
-"@polymeshassociation/polymesh-private-sdk@1.0.0-alpha.12":
-  version "1.0.0-alpha.12"
-  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-1.0.0-alpha.12.tgz#dfb4053752c6f3961bb815017e34e5f356fb83af"
-  integrity sha512-IIP40lu6pGklekoen2KoimFs9euKzR61m+r7XcTAqk8hh6wqM9x3GyRZqfvtGdPgF8uz9gRs52e3tqtiVc7pIw==
+"@polymeshassociation/polymesh-private-sdk@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-1.1.0.tgz#2bbd414d2d711ed7f93486473ceed00eb134eec3"
+  integrity sha512-+kGxSDBE75embZ04CzwczBzelpQLhUjf5tELCbdu64okL/0Iy9q8XJ268Q4onUiF9kFz9/Y6Akc4mnTRyhgaVA==
+  dependencies:
+    "@apollo/client" "^3.8.1"
+    "@noble/curves" "^1.4.0"
+    "@polkadot/api" "10.9.1"
+    "@polkadot/util" "12.4.2"
+    "@polkadot/util-crypto" "12.4.2"
+    "@polymeshassociation/polymesh-sdk" "24.2.1"
+    bignumber.js "9.0.1"
+    bluebird "^3.7.2"
+    cross-fetch "^4.0.0"
+    dayjs "1.11.9"
+    graphql "^16.8.0"
+    graphql-tag "2.12.6"
+    iso-7064 "^1.1.0"
+    json-stable-stringify "^1.0.2"
+    lodash "^4.17.21"
+    patch-package "^8.0.0"
+    semver "^7.5.4"
+    websocket "^1.0.34"
+
+"@polymeshassociation/polymesh-sdk@24.2.1":
+  version "24.2.1"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-sdk/-/polymesh-sdk-24.2.1.tgz#3fd4c8da94e39b80e2778bdc3c62b17348d6c331"
+  integrity sha512-mKFqSEC98akG+F/50alDLXnOD/VrkKdf5pXRM6KRY0OCJxOV0JYfEk23NApHx/OCgzu9CiTHElgBMjoRywAp3A==
   dependencies:
     "@apollo/client" "^3.8.1"
     "@polkadot/api" "10.9.1"

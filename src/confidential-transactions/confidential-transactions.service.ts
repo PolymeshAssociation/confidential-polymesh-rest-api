@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
+  AddConfidentialTransactionParams,
+  AffirmConfidentialTransactionParams,
   ConfidentialAffirmParty,
   ConfidentialTransaction,
   ConfidentialVenue,
   EventIdentifier,
   Identity,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { AppInternalError, AppNotFoundError, AppValidationError } from '~/common/errors';
-import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
@@ -20,8 +19,15 @@ import { createConfidentialTransactionModel } from '~/confidential-transactions/
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
-import { IdentitiesService } from '~/identities/identities.service';
 import { PolymeshService } from '~/polymesh/polymesh.service';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import {
+  AppInternalError,
+  AppNotFoundError,
+  AppValidationError,
+} from '~/polymesh-rest-api/src/common/errors';
+import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
+import { IdentitiesService } from '~/polymesh-rest-api/src/identities/identities.service';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
 
@@ -72,7 +78,11 @@ export class ConfidentialTransactionsService {
 
     const { options, args } = extractTxOptions(createConfidentialTransactionDto);
 
-    return this.transactionsService.submit(venue.addTransaction, args, options);
+    return this.transactionsService.submit(
+      venue.addTransaction,
+      args as AddConfidentialTransactionParams,
+      options
+    );
   }
 
   public async observerAffirmLeg(
@@ -83,7 +93,11 @@ export class ConfidentialTransactionsService {
 
     const { options, args } = extractTxOptions(body);
 
-    return this.transactionsService.submit(transaction.affirmLeg, args, options);
+    return this.transactionsService.submit(
+      transaction.affirmLeg,
+      args as AffirmConfidentialTransactionParams,
+      options
+    );
   }
 
   public async senderAffirmLeg(
@@ -96,7 +110,7 @@ export class ConfidentialTransactionsService {
 
     const { options, args } = extractTxOptions(body);
 
-    const { legId, legAmounts } = args;
+    const { legId, legAmounts } = args as SenderAffirmConfidentialTransactionDto;
 
     if (legId.gte(transaction.legs.length)) {
       throw new AppValidationError('Invalid leg ID received');
@@ -172,7 +186,7 @@ export class ConfidentialTransactionsService {
   public async findVenuesByOwner(did: string): Promise<ConfidentialVenue[]> {
     const identity = await this.identitiesService.findOne(did);
 
-    return identity.getConfidentialVenues();
+    return (identity as unknown as Identity).getConfidentialVenues();
   }
 
   public async getPendingAffirmsCount(transactionId: BigNumber): Promise<BigNumber> {

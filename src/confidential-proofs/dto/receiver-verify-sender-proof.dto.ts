@@ -1,11 +1,11 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import { IsOptional, IsString } from 'class-validator';
 
-import { ToBigNumber } from '~/common/decorators/transformation';
-import { IsBigNumber } from '~/common/decorators/validation';
+import { ToBigNumber } from '~/polymesh-rest-api/src/common/decorators/transformation';
+import { IsBigNumber } from '~/polymesh-rest-api/src/common/decorators/validation';
 
 export class ReceiverVerifySenderProofDto {
   @ApiProperty({

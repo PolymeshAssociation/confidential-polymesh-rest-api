@@ -1,6 +1,6 @@
 import {
   PolymeshTransaction,
   PolymeshTransactionBatch,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
 export type Transaction = PolymeshTransaction | PolymeshTransactionBatch;

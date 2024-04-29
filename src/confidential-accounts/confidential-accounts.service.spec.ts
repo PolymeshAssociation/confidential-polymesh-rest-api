@@ -1,6 +1,6 @@
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAccount,
   ConfidentialAssetBalance,
@@ -8,10 +8,10 @@ import {
   EventIdEnum,
   ResultSet,
   TxTags,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { ConfidentialTransactionDirectionEnum } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
+import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { PolymeshService } from '~/polymesh/polymesh.service';

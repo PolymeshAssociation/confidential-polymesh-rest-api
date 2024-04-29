@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAsset,
   ConfidentialAssetTransactionHistory,
   ConfidentialVenueFilteringDetails,
   EventIdentifier,
   ResultSet,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { extractTxOptions, ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { BurnConfidentialAssetsDto } from '~/confidential-assets/dto/burn-confidential-assets.dto';
 import { CreateConfidentialAssetDto } from '~/confidential-assets/dto/create-confidential-asset.dto';
@@ -17,6 +15,8 @@ import { IssueConfidentialAssetDto } from '~/confidential-assets/dto/issue-confi
 import { ToggleFreezeConfidentialAccountAssetDto } from '~/confidential-assets/dto/toggle-freeze-confidential-account-asset.dto';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { PolymeshService } from '~/polymesh/polymesh.service';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
 

@@ -1,11 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import { Method } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
-import { AppInternalError } from '~/common/errors';
 import {
   deserializeObject,
   serializeObject,
@@ -17,7 +16,8 @@ import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver
 import { ConfidentialAccountEntity } from '~/confidential-proofs/entities/confidential-account.entity';
 import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-balance.model';
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
-import { PolymeshLogger } from '~/logger/polymesh-logger.service';
+import { AppInternalError } from '~/polymesh-rest-api/src/common/errors';
+import { PolymeshLogger } from '~/polymesh-rest-api/src/logger/polymesh-logger.service';
 
 @Injectable()
 export class ConfidentialProofsService {

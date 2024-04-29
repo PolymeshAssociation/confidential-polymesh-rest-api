@@ -1,9 +1,9 @@
 /* istanbul ignore file */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
-import { FromBigNumber } from '~/common/decorators/transformation';
+import { FromBigNumber } from '~/polymesh-rest-api/src/common/decorators/transformation';
 
 export class ConfidentialAssetTransactionModel {
   @ApiProperty({

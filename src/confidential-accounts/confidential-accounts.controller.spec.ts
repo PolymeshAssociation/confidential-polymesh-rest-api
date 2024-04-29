@@ -6,13 +6,13 @@ import {
   ConfidentialAssetHistoryEntry,
   EventIdEnum,
   ResultSet,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
-import { ServiceReturn } from '~/common/utils';
 import { ConfidentialAccountsController } from '~/confidential-accounts/confidential-accounts.controller';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
+import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
+import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { testValues } from '~/test-utils/consts';
 import { createMockConfidentialAsset, createMockIdentity } from '~/test-utils/mocks';
 import { mockConfidentialAccountsServiceProvider } from '~/test-utils/service-mocks';

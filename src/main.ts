@@ -5,14 +5,16 @@ import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { AppModule } from '~/app.module';
-import { parseAuthStrategyConfig } from '~/auth/auth.utils';
-import { AuthStrategy } from '~/auth/strategies/strategies.consts';
-import { AppErrorToHttpResponseFilter } from '~/common/filters/app-error-to-http-response.filter';
-import { LoggingInterceptor } from '~/common/interceptors/logging.interceptor';
-import { WebhookResponseCodeInterceptor } from '~/common/interceptors/webhook-response-code.interceptor';
-import { swaggerDescription, swaggerTitle } from '~/common/utils';
-import { PolymeshLogger } from '~/logger/polymesh-logger.service';
+import { parseAuthStrategyConfig } from '~/polymesh-rest-api/src/auth/auth.utils';
+import { AuthStrategy } from '~/polymesh-rest-api/src/auth/strategies/strategies.consts';
+import { AppErrorToHttpResponseFilter } from '~/polymesh-rest-api/src/common/filters/app-error-to-http-response.filter';
+import { LoggingInterceptor } from '~/polymesh-rest-api/src/common/interceptors/logging.interceptor';
+import { WebhookResponseCodeInterceptor } from '~/polymesh-rest-api/src/common/interceptors/webhook-response-code.interceptor';
+import { swaggerDescription, swaggerTitle } from '~/polymesh-rest-api/src/common/utils/consts';
+import { PolymeshLogger } from '~/polymesh-rest-api/src/logger/polymesh-logger.service';
+
+// eslint-disable-next-line no-restricted-imports
+import { AppModule } from './app.module';
 
 // This service was originally designed with node v14, this ensures a backwards compatible run time
 // Ideally we wouldn't need this function, but I am unable to find the cause when submitting SDK transactions that fail validation

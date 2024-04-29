@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import { camelCase, mapKeys, mapValues, snakeCase } from 'lodash';
 
 export function serializeObject(obj: unknown): unknown {

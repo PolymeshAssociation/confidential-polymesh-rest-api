@@ -1,10 +1,10 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { ConfidentialVenue } from '@polymeshassociation/polymesh-sdk/types';
+import { ConfidentialVenue } from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { FromEntity } from '~/common/decorators/transformation';
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
+import { FromEntity } from '~/polymesh-rest-api/src/common/decorators/transformation';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 
 export class CreatedConfidentialVenueModel extends TransactionQueueModel {
   @ApiProperty({

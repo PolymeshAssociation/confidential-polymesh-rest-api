@@ -9,22 +9,25 @@ import {
 } from '@nestjs/swagger';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
-import {
-  ApiArrayResponse,
-  ApiTransactionFailedResponse,
-  ApiTransactionResponse,
-} from '~/common/decorators/swagger';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { PaginatedResultsModel } from '~/common/models/paginated-results.model';
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
-import { handleServiceResult, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { TransactionHistoryParamsDto } from '~/confidential-accounts/dto/transaction-history-params.dto';
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
-import { IdentityModel } from '~/identities/models/identity.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
+import {
+  ApiArrayResponse,
+  ApiTransactionFailedResponse,
+  ApiTransactionResponse,
+} from '~/polymesh-rest-api/src/common/decorators/swagger';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
+import {
+  handleServiceResult,
+  TransactionResponseModel,
+} from '~/polymesh-rest-api/src/common/utils/functions';
 
 @ApiTags('confidential-accounts')
 @Controller('confidential-accounts')

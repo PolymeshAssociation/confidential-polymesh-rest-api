@@ -1,0 +1,3 @@
+[submodule "src/polymesh-rest-api"]
+	path = src/polymesh-rest-api
+	url = https://github.com/PolymeshAssociation/polymesh-rest-api

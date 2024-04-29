@@ -1,20 +1,20 @@
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialVenueFilteringDetails,
   EventIdEnum,
   TxTags,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 import { when } from 'jest-when';
 
-import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { PolymeshService } from '~/polymesh/polymesh.service';
+import { ProcessMode } from '~/polymesh-rest-api/src/common/types';
 import { testValues } from '~/test-utils/consts';
 import { createMockConfidentialAsset, MockPolymesh, MockTransaction } from '~/test-utils/mocks';
 import {

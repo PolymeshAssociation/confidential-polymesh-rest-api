@@ -4,8 +4,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { EventIdEnum } from '@polymeshassociation/polymesh-private-sdk/types';
 import { IsOptional } from 'class-validator';
 
-import { IsConfidentialAssetId } from '~/common/decorators/validation';
-import { PaginatedParamsDto } from '~/common/dto/paginated-params.dto';
+import { IsConfidentialAssetId } from '~/confidential-assets/decorators/validation';
+import { PaginatedParamsDto } from '~/polymesh-rest-api/src/common/dto/paginated-params.dto';
 
 export class TransactionHistoryParamsDto extends PaginatedParamsDto {
   @ApiPropertyOptional({

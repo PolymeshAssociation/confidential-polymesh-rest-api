@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { Class } from '~/common/types';
+import { Class } from '~/polymesh-rest-api/src/common/types';
 
 export type ValidCase = [string, Record<string, unknown>];
 

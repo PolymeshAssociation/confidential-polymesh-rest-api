@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { ConfidentialAccount } from '@polymeshassociation/polymesh-sdk/types';
+import { ConfidentialAccount } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
 

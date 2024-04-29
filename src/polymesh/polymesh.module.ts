@@ -2,12 +2,12 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
-import { Polymesh } from '@polymeshassociation/polymesh-sdk';
+import { ConfidentialPolymesh as Polymesh } from '@polymeshassociation/polymesh-private-sdk';
 
 import polymeshConfig from '~/polymesh/config/polymesh.config';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshService } from '~/polymesh/polymesh.service';
-import { ScheduleModule } from '~/schedule/schedule.module';
+import { ScheduleModule } from '~/polymesh-rest-api/src/schedule/schedule.module';
 
 @Module({
   imports: [ConfigModule.forFeature(polymeshConfig), ScheduleModule],

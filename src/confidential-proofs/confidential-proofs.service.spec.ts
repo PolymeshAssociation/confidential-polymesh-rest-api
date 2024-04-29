@@ -3,11 +3,11 @@ const mockLastValueFrom = jest.fn();
 
 import { HttpService } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import confidentialProofsConfig from '~/confidential-proofs/config/confidential-proofs.config';
-import { mockPolymeshLoggerProvider } from '~/logger/mock-polymesh-logger';
+import { mockPolymeshLoggerProvider } from '~/polymesh-rest-api/src/logger/mock-polymesh-logger';
 import { MockHttpService } from '~/test-utils/service-mocks';
 
 jest.mock('rxjs', () => ({

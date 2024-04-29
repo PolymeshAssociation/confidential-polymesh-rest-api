@@ -3,19 +3,23 @@ import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import {
   ConfidentialTransaction,
   ConfidentialVenue,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 
-import { ApiTransactionResponse } from '~/common/decorators/swagger';
-import { IdParamsDto } from '~/common/dto/id-params.dto';
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
-import { handleServiceResult, TransactionResolver, TransactionResponseModel } from '~/common/utils';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { CreatedConfidentialTransactionModel } from '~/confidential-transactions/models/created-confidential-transaction.model';
 import { CreatedConfidentialVenueModel } from '~/confidential-transactions/models/created-confidential-venue.model';
-import { IdentityModel } from '~/identities/models/identity.model';
-import { CreatedInstructionModel } from '~/settlements/models/created-instruction.model';
+import { IdentityModel } from '~/extended-identities/models/identity.model';
+import { ApiTransactionResponse } from '~/polymesh-rest-api/src/common/decorators/swagger';
+import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
+import {
+  handleServiceResult,
+  TransactionResolver,
+  TransactionResponseModel,
+} from '~/polymesh-rest-api/src/common/utils/functions';
+import { CreatedInstructionModel } from '~/polymesh-rest-api/src/settlements/models/created-instruction.model';
 
 @ApiTags('confidential-venues')
 @Controller('confidential-venues')

@@ -9,7 +9,7 @@ import { ConfidentialProofsController } from '~/confidential-proofs/confidential
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import confidentialProofsConfig from '~/confidential-proofs/config/confidential-proofs.config';
 import { ConfidentialTransactionsModule } from '~/confidential-transactions/confidential-transactions.module';
-import { LoggerModule } from '~/logger/logger.module';
+import { LoggerModule } from '~/polymesh-rest-api/src/logger/logger.module';
 
 @Module({})
 export class ConfidentialProofsModule {

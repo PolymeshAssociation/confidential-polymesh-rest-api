@@ -1,18 +1,15 @@
 import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BigNumber } from '@polymeshassociation/polymesh-sdk';
+import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAccount,
   ConfidentialAffirmParty,
   ConfidentialTransaction,
   ConfidentialTransactionStatus,
   TxTags,
-} from '@polymeshassociation/polymesh-sdk/types';
+} from '@polymeshassociation/polymesh-private-sdk/types';
 import { when } from 'jest-when';
 
-import { TransactionBaseDto } from '~/common/dto/transaction-base-dto';
-import { AppInternalError, AppNotFoundError } from '~/common/errors';
-import { ProcessMode } from '~/common/types';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
 import { ConfidentialAssetModel } from '~/confidential-assets/models/confidential-asset.model';
@@ -23,10 +20,13 @@ import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transac
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
 import { ConfidentialAssetAuditorModel } from '~/confidential-transactions/models/confidential-asset-auditor.model';
 import { ConfidentialTransactionModel } from '~/confidential-transactions/models/confidential-transaction.model';
-import { IdentitiesService } from '~/identities/identities.service';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { PolymeshService } from '~/polymesh/polymesh.service';
+import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { AppInternalError, AppNotFoundError } from '~/polymesh-rest-api/src/common/errors';
+import { ProcessMode } from '~/polymesh-rest-api/src/common/types';
+import { IdentitiesService } from '~/polymesh-rest-api/src/identities/identities.service';
 import { testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
