@@ -322,8 +322,8 @@ export class ConfidentialTransactionsService {
         } else {
           response.push(
             new AuditorVerifyProofModel({
-              isAuditor: false,
               isProved: true,
+              isAuditor: false,
               assetId,
               legId,
               amount: null,
