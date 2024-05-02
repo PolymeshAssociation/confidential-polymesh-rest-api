@@ -3,13 +3,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class AuditorVerifyTransactionDto {
+export class VerifyTransactionAmountsDto {
   @ApiProperty({
     description:
-      'The public key of the auditor to verify with. Any leg with a provided sender proof involving this auditor will be verified. The corresponding private must be present in the proof server',
+      'The public key to decrypt transaction amounts for. Any leg with a provided sender proof involving this key as auditor or a receiver will be verified. The corresponding private key must be present in the proof server',
     type: 'string',
     example: '0x7e9cf42766e08324c015f183274a9e977706a59a28d64f707e410a03563be77d',
   })
   @IsString()
-  readonly auditorKey: string;
+  readonly publicKey: string;
 }

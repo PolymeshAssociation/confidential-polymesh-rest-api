@@ -13,7 +13,8 @@ import {
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
-import { AuditorVerifyTransactionDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
+import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
+import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver-verify-sender-proof.dto';
 import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
 import { createConfidentialTransactionModel } from '~/confidential-transactions/confidential-transactions.util';
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
@@ -21,11 +22,7 @@ import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transac
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
-import {
-  AppInternalError,
-  AppNotFoundError,
-  AppValidationError,
-} from '~/polymesh-rest-api/src/common/errors';
+import { AppValidationError } from '~/polymesh-rest-api/src/common/errors';
 import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { IdentitiesService } from '~/polymesh-rest-api/src/identities/identities.service';
 import { TransactionsService } from '~/transactions/transactions.service';
@@ -196,147 +193,103 @@ export class ConfidentialTransactionsService {
   }
 
   /**
-   *  For a given confidential transaction and auditor this method performs the following steps:
-   *     - Fetch all legs and sender proofs for the transaction
-   *     - Find the legs and assets for which the auditor is involved
-   *     - Verify the relevant proofs for the auditor
-   *     - For non involved proofs, return a response indicating as such
+   * Given an ElGamal public key this method decrypts all asset amounts with the corresponding private key
    */
-  public async verifyTransactionAsAuditor(
+  public async verifyTransactionAmounts(
     transactionId: BigNumber,
-    params: AuditorVerifyTransactionDto
+    params: VerifyTransactionAmountsDto
   ): Promise<AuditorVerifyProofModel[]> {
     const transaction = await this.findOne(transactionId);
-    const [legs, legStates, senderProofs] = await Promise.all([
-      transaction.getLegs(),
-      transaction.getLegStates(),
-      transaction.getSenderProofs(),
-    ]);
+    const { proved, pending } = await transaction.getProofDetails();
+    const publicKey = params.publicKey;
 
-    if (legs.length === 0) {
-      throw new AppNotFoundError(
-        transactionId.toString(),
-        'transaction legs (transaction likely executed)'
-      );
-    }
+    const response: AuditorVerifyProofModel[] = [];
 
-    const auditorPublicKey = params.auditorKey;
-
-    type AuditorLookupEntry =
-      | { isAuditor: false; assetId: string }
-      | { isAuditor: true; assetId: string; auditorId: BigNumber };
-    const legIdToAssetAuditor: Record<string, AuditorLookupEntry[]> = {};
-
-    const insertEntry = (legId: BigNumber, value: AuditorLookupEntry): void => {
-      const key = legId.toString();
-      if (legIdToAssetAuditor[key]) {
-        legIdToAssetAuditor[key].push(value);
-      } else {
-        legIdToAssetAuditor[key] = [value];
+    pending.forEach(value => {
+      let isReceiver = false;
+      if (value.receiver.publicKey === publicKey) {
+        isReceiver = true;
       }
-    };
 
-    legs.forEach(({ id: legId, assetAuditors }) => {
-      assetAuditors.forEach(({ auditors, asset: { id: assetId } }) => {
-        const auditorIndex = auditors.findIndex(({ publicKey }) => publicKey === auditorPublicKey);
-        if (auditorIndex < 0) {
-          insertEntry(legId, { isAuditor: false, assetId });
-        } else {
-          insertEntry(legId, {
-            isAuditor: true,
-            auditorId: new BigNumber(auditorIndex),
-            assetId,
-          });
-        }
+      value.proofs.forEach(assetProof => {
+        const isAuditor = assetProof.auditors.map(auditor => auditor.publicKey).includes(publicKey);
+
+        response.push({
+          isProved: false,
+          isAuditor,
+          isReceiver,
+          amountDecrypted: false,
+          legId: value.legId,
+          assetId: assetProof.assetId,
+          amount: null,
+          isValid: null,
+          errMsg: null,
+        });
       });
     });
 
-    const response: AuditorVerifyProofModel[] = [];
-    const proofRequests: {
+    const auditorRequests: {
       confidentialAccount: string;
       params: AuditorVerifySenderProofDto;
       trackers: { legId: BigNumber; assetId: string };
     }[] = [];
 
-    const legsWithoutStates = legs.filter(leg => !legStates.find(state => state.legId.eq(leg.id)));
-    legsWithoutStates.forEach(leg => {
-      leg.assetAuditors.forEach(assetAuditor => {
-        const isAuditor = !!assetAuditor.auditors.find(
-          legAuditor => legAuditor.publicKey === auditorPublicKey
+    const receiverRequests: {
+      confidentialAccount: string;
+      params: ReceiverVerifySenderProofDto;
+      trackers: { legId: BigNumber; assetId: string; isAuditor: boolean };
+    }[] = [];
+
+    proved.forEach(value => {
+      let isReceiver = false;
+      if (value.receiver.publicKey === publicKey) {
+        isReceiver = true;
+      }
+
+      value.proofs.forEach(assetProof => {
+        const auditorIndex = assetProof.auditors.findIndex(
+          auditorKey => auditorKey.publicKey === publicKey
         );
 
-        response.push(
-          new AuditorVerifyProofModel({
-            isProved: false,
-            isAuditor,
-            assetId: assetAuditor.asset.id,
-            legId: leg.id,
+        const isAuditor = auditorIndex >= 0;
+
+        if (isReceiver) {
+          receiverRequests.push({
+            confidentialAccount: publicKey,
+            params: {
+              senderProof: assetProof.proof,
+              amount: null,
+            },
+            trackers: { assetId: assetProof.assetId, legId: value.legId, isAuditor },
+          });
+        } else if (isAuditor) {
+          auditorRequests.push({
+            confidentialAccount: publicKey,
+            params: {
+              senderProof: assetProof.proof,
+              auditorId: new BigNumber(auditorIndex),
+              amount: null,
+            },
+            trackers: { assetId: assetProof.assetId, legId: value.legId },
+          });
+        } else {
+          response.push({
+            isProved: true,
+            isAuditor: false,
+            isReceiver: false,
+            amountDecrypted: false,
+            legId: value.legId,
+            assetId: assetProof.assetId,
             amount: null,
             isValid: null,
             errMsg: null,
-          })
-        );
-      });
-    });
-
-    legStates.forEach(({ legId, proved }) => {
-      const key = legId.toString();
-
-      const legProofs = senderProofs.find(senderProof => senderProof.legId.eq(legId));
-
-      // leg proofs may not be present for a proved tx if middleware hasn't synced yet
-      if (!proved || !legProofs) {
-        const legAssets = legIdToAssetAuditor[key];
-        legAssets.forEach(({ assetId, isAuditor }) => {
-          response.push(
-            new AuditorVerifyProofModel({
-              isProved: false,
-              isAuditor,
-              assetId,
-              legId,
-              amount: null,
-              isValid: null,
-              errMsg: null,
-            })
-          );
-        });
-
-        return;
-      }
-
-      const assetAuditorValues = legIdToAssetAuditor[legId.toString()];
-      legProofs.proofs.forEach(({ assetId, proof }) => {
-        const auditorRecord = assetAuditorValues?.find(value => value.assetId === assetId);
-
-        if (!auditorRecord) {
-          throw new AppInternalError('asset auditor from SQ was not found in chain storage');
-        }
-
-        if (auditorRecord.isAuditor) {
-          // Note: we could let users specify amount
-          proofRequests.push({
-            confidentialAccount: auditorPublicKey,
-            params: { senderProof: proof, auditorId: auditorRecord.auditorId, amount: null },
-            trackers: { assetId, legId },
           });
-        } else {
-          response.push(
-            new AuditorVerifyProofModel({
-              isProved: true,
-              isAuditor: false,
-              assetId,
-              legId,
-              amount: null,
-              isValid: null,
-              errMsg: null,
-            })
-          );
         }
       });
     });
 
-    const proofResponses = await Promise.all(
-      proofRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
+    const auditorResponses = await Promise.all(
+      auditorRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
         const proofResponse = await this.confidentialProofsService.verifySenderProofAsAuditor(
           confidentialAccount,
           proofParams
@@ -349,10 +302,40 @@ export class ConfidentialTransactionsService {
       })
     );
 
-    proofResponses.forEach(({ proofResponse, trackers: { assetId, legId } }) => {
+    const receiverResponses = await Promise.all(
+      receiverRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
+        const proofResponse = await this.confidentialProofsService.verifySenderProofAsReceiver(
+          confidentialAccount,
+          proofParams
+        );
+
+        return {
+          proofResponse,
+          trackers,
+        };
+      })
+    );
+
+    auditorResponses.forEach(({ proofResponse, trackers: { assetId, legId } }) => {
       response.push({
         isProved: true,
         isAuditor: true,
+        isReceiver: false,
+        amountDecrypted: true,
+        amount: proofResponse.amount,
+        assetId,
+        legId,
+        errMsg: proofResponse.errMsg,
+        isValid: proofResponse.isValid,
+      });
+    });
+
+    receiverResponses.forEach(({ proofResponse, trackers: { assetId, legId, isAuditor } }) => {
+      response.push({
+        isProved: true,
+        isAuditor,
+        isReceiver: true,
+        amountDecrypted: true,
         amount: proofResponse.amount,
         assetId,
         legId,

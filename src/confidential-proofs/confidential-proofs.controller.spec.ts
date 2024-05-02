@@ -195,15 +195,15 @@ describe('ConfidentialProofsController', () => {
   describe('auditorVerifyTransaction', () => {
     it('should call the service and return the results', async () => {
       const input = {
-        auditorKey: 'SOME_PUBLIC_KEY',
+        publicKey: 'SOME_PUBLIC_KEY',
       };
       const id = new BigNumber(1);
 
-      when(mockConfidentialTransactionsService.verifyTransactionAsAuditor)
+      when(mockConfidentialTransactionsService.verifyTransactionAmounts)
         .calledWith(id, input)
         .mockResolvedValue([]);
 
-      const result = await controller.auditorVerifyTransaction({ id }, input);
+      const result = await controller.verifyAmounts({ id }, input);
       expect(result).toEqual({ verifications: [] });
     });
   });

@@ -15,7 +15,7 @@ import { BurnConfidentialAssetsDto } from '~/confidential-assets/dto/burn-confid
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
-import { AuditorVerifyTransactionDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
+import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
 import { DecryptBalanceDto } from '~/confidential-proofs/dto/decrypt-balance.dto';
 import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver-verify-sender-proof.dto';
 import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
@@ -134,12 +134,12 @@ export class ConfidentialProofsController {
   @ApiInternalServerErrorResponse({
     description: 'Proof server returned a non-OK status',
   })
-  @Post('confidential-transactions/:id/auditor-verify')
-  public async auditorVerifyTransaction(
+  @Post('confidential-transactions/:id/verify-amounts')
+  public async verifyAmounts(
     @Param() { id }: IdParamsDto,
-    @Body() body: AuditorVerifyTransactionDto
+    @Body() body: VerifyTransactionAmountsDto
   ): Promise<AuditorVerifyTransactionModel> {
-    const verifications = await this.confidentialTransactionsService.verifyTransactionAsAuditor(
+    const verifications = await this.confidentialTransactionsService.verifyTransactionAmounts(
       id,
       body
     );
