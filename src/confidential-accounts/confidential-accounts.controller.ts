@@ -122,7 +122,7 @@ export class ConfidentialAccountsController {
   }
 
   @ApiOperation({
-    summary: 'Get balance of a specific Confidential Asset',
+    summary: 'Get the balance of a specific Confidential Asset',
     description:
       'This endpoint retrieves the existing balance of a specific Confidential Asset in the given Confidential Account',
   })
@@ -139,11 +139,11 @@ export class ConfidentialAccountsController {
     example: '76702175-d8cb-e3a5-5a19-734433351e25',
   })
   @ApiOkResponse({
-    description: 'Encrypted balance of the Confidential Asset',
-    type: 'string',
+    description: 'The encrypted balance of the Confidential Asset',
+    type: ConfidentialAssetBalanceModel,
   })
   @ApiNotFoundResponse({
-    description: 'No balance is found for the given Confidential Asset',
+    description: 'No balance was found for the given Confidential Asset',
   })
   @Get(':confidentialAccount/balances/:confidentialAssetId')
   public async getConfidentialAssetBalance(
@@ -152,7 +152,7 @@ export class ConfidentialAccountsController {
       confidentialAccount,
       confidentialAssetId,
     }: ConfidentialAccountParamsDto & ConfidentialAssetIdParamsDto
-  ): Promise<string> {
+  ): Promise<ConfidentialAssetBalanceModel> {
     return this.confidentialAccountsService.getAssetBalance(
       confidentialAccount,
       confidentialAssetId
@@ -208,7 +208,7 @@ export class ConfidentialAccountsController {
   })
   @ApiOkResponse({
     description: 'Encrypted incoming balance of the Confidential Asset',
-    type: 'string',
+    type: ConfidentialAssetBalanceModel,
   })
   @ApiNotFoundResponse({
     description: 'No incoming balance is found for the given Confidential Asset',
@@ -220,7 +220,7 @@ export class ConfidentialAccountsController {
       confidentialAccount,
       confidentialAssetId,
     }: ConfidentialAccountParamsDto & ConfidentialAssetIdParamsDto
-  ): Promise<string> {
+  ): Promise<ConfidentialAssetBalanceModel> {
     return this.confidentialAccountsService.getIncomingAssetBalance(
       confidentialAccount,
       confidentialAssetId

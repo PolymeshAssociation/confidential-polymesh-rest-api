@@ -127,7 +127,7 @@ export class ConfidentialAssetsService {
 
     const { options, args } = extractTxOptions(params);
 
-    const encryptedBalance = await this.confidentialAccountsService.getAssetBalance(
+    const { balance: encryptedBalance } = await this.confidentialAccountsService.getAssetBalance(
       args.confidentialAccount,
       assetId
     );

@@ -99,23 +99,29 @@ describe('ConfidentialAccountsController', () => {
     it('should get all confidential asset balances', async () => {
       const confidentialAssetId = 'SOME_ASSET_ID';
       const balance = '0xsomebalance';
-      mockConfidentialAccountsService.getAssetBalance.mockResolvedValue(balance);
+      mockConfidentialAccountsService.getAssetBalance.mockResolvedValue({
+        confidentialAsset: confidentialAssetId,
+        balance,
+      });
 
       let result = await controller.getConfidentialAssetBalance({
         confidentialAccount,
         confidentialAssetId,
       });
 
-      expect(result).toEqual(balance);
+      expect(result).toEqual({ balance, confidentialAsset: confidentialAssetId });
 
-      mockConfidentialAccountsService.getIncomingAssetBalance.mockResolvedValue(balance);
+      mockConfidentialAccountsService.getIncomingAssetBalance.mockResolvedValue({
+        balance,
+        confidentialAsset: confidentialAssetId,
+      });
 
       result = await controller.getIncomingConfidentialAssetBalance({
         confidentialAccount,
         confidentialAssetId,
       });
 
-      expect(result).toEqual(balance);
+      expect(result).toEqual({ balance, confidentialAsset: confidentialAssetId });
     });
   });
 

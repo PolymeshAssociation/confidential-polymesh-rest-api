@@ -344,7 +344,7 @@ describe('ConfidentialAssetsService', () => {
       const encryptedBalance = '0xencryptedbalance';
       when(mockConfidentialAccountsService.getAssetBalance)
         .calledWith(params.confidentialAccount, id)
-        .mockResolvedValue(encryptedBalance);
+        .mockResolvedValue({ balance: encryptedBalance, confidentialAsset: 'SOME_ASSET_ID' });
 
       const mockProof = 'some_proof';
       when(mockConfidentialProofsService.generateBurnProof)

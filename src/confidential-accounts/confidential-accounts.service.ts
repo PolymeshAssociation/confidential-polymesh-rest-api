@@ -11,6 +11,7 @@ import {
   ResultSet,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
+import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
 import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
@@ -62,11 +63,19 @@ export class ConfidentialAccountsService {
     return account.getBalances();
   }
 
-  public async getAssetBalance(confidentialAccount: string, asset: string): Promise<string> {
+  public async getAssetBalance(
+    confidentialAccount: string,
+    asset: string
+  ): Promise<ConfidentialAssetBalanceModel> {
     const account = await this.findOne(confidentialAccount);
 
-    return await account.getBalance({ asset }).catch(error => {
+    const balance = await account.getBalance({ asset }).catch(error => {
       throw handleSdkError(error);
+    });
+
+    return new ConfidentialAssetBalanceModel({
+      confidentialAsset: asset,
+      balance,
     });
   }
 
@@ -81,11 +90,16 @@ export class ConfidentialAccountsService {
   public async getIncomingAssetBalance(
     confidentialAccount: string,
     asset: string
-  ): Promise<string> {
+  ): Promise<ConfidentialAssetBalanceModel> {
     const account = await this.findOne(confidentialAccount);
 
-    return await account.getIncomingBalance({ asset }).catch(error => {
+    const balance = await account.getIncomingBalance({ asset }).catch(error => {
       throw handleSdkError(error);
+    });
+
+    return new ConfidentialAssetBalanceModel({
+      balance,
+      confidentialAsset: asset,
     });
   }
 

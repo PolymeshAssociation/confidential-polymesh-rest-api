@@ -195,7 +195,7 @@ describe('ConfidentialAccountsService', () => {
 
         const result = await service.getAssetBalance(confidentialAccount, confidentialAssetId);
 
-        expect(result).toEqual(balance);
+        expect(result).toEqual({ balance, confidentialAsset: confidentialAssetId });
       });
 
       it('should call handleSdkError and throw an error', async () => {
@@ -222,7 +222,7 @@ describe('ConfidentialAccountsService', () => {
           confidentialAssetId
         );
 
-        expect(result).toEqual(balance);
+        expect(result).toEqual({ balance, confidentialAsset: confidentialAssetId });
       });
 
       it('should call handleSdkError and throw an error', async () => {
