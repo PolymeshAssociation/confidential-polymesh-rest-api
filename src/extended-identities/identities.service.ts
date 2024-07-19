@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAffirmation,
-  Identity,
   ResultSet,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
@@ -19,6 +18,6 @@ export class ExtendedIdentitiesService {
   ): Promise<ResultSet<ConfidentialAffirmation>> {
     const identity = await this.identitiesService.findOne(did);
 
-    return (identity as unknown as Identity).getInvolvedConfidentialTransactions({ size, start });
+    return identity.getInvolvedConfidentialTransactions({ size, start });
   }
 }

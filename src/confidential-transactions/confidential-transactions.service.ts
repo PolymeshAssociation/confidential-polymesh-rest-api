@@ -183,7 +183,7 @@ export class ConfidentialTransactionsService {
   public async findVenuesByOwner(did: string): Promise<ConfidentialVenue[]> {
     const identity = await this.identitiesService.findOne(did);
 
-    return (identity as unknown as Identity).getConfidentialVenues();
+    return identity.getConfidentialVenues();
   }
 
   public async getPendingAffirmsCount(transactionId: BigNumber): Promise<BigNumber> {
