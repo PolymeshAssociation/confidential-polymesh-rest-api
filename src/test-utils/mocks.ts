@@ -35,6 +35,12 @@ export class MockPolymesh extends MockPublicPolymesh {
     getVenue: jest.fn(),
     createVenue: jest.fn(),
   };
+
+  public identities = {
+    isIdentityValid: jest.fn(),
+    getIdentity: jest.fn(),
+    createPortfolio: jest.fn(),
+  };
 }
 
 export class MockTransaction {

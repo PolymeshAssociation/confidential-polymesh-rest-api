@@ -20,12 +20,12 @@ import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transac
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
 import { ConfidentialAssetAuditorModel } from '~/confidential-transactions/models/confidential-asset-auditor.model';
 import { ConfidentialTransactionModel } from '~/confidential-transactions/models/confidential-transaction.model';
+import { ExtendedIdentitiesService } from '~/extended-identities/identities.service';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 import { ProcessMode } from '~/polymesh-rest-api/src/common/types';
-import { IdentitiesService } from '~/polymesh-rest-api/src/identities/identities.service';
 import { testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
@@ -70,12 +70,12 @@ describe('ConfidentialTransactionsService', () => {
         mockTransactionsProvider,
         mockConfidentialProofsServiceProvider,
         mockConfidentialAccountsServiceProvider,
-        IdentitiesService,
+        ExtendedIdentitiesService,
       ],
     })
       .overrideProvider(POLYMESH_API)
       .useValue(mockPolymeshApi)
-      .overrideProvider(IdentitiesService)
+      .overrideProvider(ExtendedIdentitiesService)
       .useValue(mockIdentitiesService)
       .compile();
 

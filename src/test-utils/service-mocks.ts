@@ -19,6 +19,7 @@ export class MockHttpService extends MockHttpServiceRestApi {
 }
 
 export class MockIdentitiesService extends MockIdentitiesServiceRestApi {
+  findOne = jest.fn();
   getInvolvedConfidentialTransactions = jest.fn();
 }
 

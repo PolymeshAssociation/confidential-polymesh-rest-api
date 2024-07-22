@@ -20,11 +20,11 @@ import { createConfidentialTransactionModel } from '~/confidential-transactions/
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto copy';
+import { ExtendedIdentitiesService } from '~/extended-identities/identities.service';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 import { AppValidationError } from '~/polymesh-rest-api/src/common/errors';
 import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { IdentitiesService } from '~/polymesh-rest-api/src/identities/identities.service';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
 
@@ -35,7 +35,7 @@ export class ConfidentialTransactionsService {
     private readonly transactionsService: TransactionsService,
     private readonly confidentialAccountsService: ConfidentialAccountsService,
     private readonly confidentialProofsService: ConfidentialProofsService,
-    private readonly identitiesService: IdentitiesService
+    private readonly extendedIdentitiesService: ExtendedIdentitiesService
   ) {}
 
   public async findOne(id: BigNumber): Promise<ConfidentialTransaction> {
@@ -181,7 +181,7 @@ export class ConfidentialTransactionsService {
   }
 
   public async findVenuesByOwner(did: string): Promise<ConfidentialVenue[]> {
-    const identity = await this.identitiesService.findOne(did);
+    const identity = await this.extendedIdentitiesService.findOne(did);
 
     return identity.getConfidentialVenues();
   }
