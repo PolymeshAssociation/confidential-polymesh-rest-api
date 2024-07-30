@@ -253,17 +253,23 @@ describe('ConfidentialAccountsService', () => {
         tag: TxTags.confidentialAsset.ApplyIncomingBalances,
       };
       const mockTransaction = new MockTransaction(mockTransactions);
-      const mockAccount = createMockConfidentialAccount();
+      const mockIncomingAssetBalances = [
+        {
+          asset: createMockConfidentialAsset(),
+          amount: '0xAmount',
+          balance: '0xBalance',
+        },
+      ];
 
       mockTransactionsService.submit.mockResolvedValue({
-        result: mockAccount,
+        result: mockIncomingAssetBalances,
         transactions: [mockTransaction],
       });
 
       const result = await service.applyAllIncomingAssetBalances(confidentialAccount, input);
 
       expect(result).toEqual({
-        result: mockAccount,
+        result: mockIncomingAssetBalances,
         transactions: [mockTransaction],
       });
     });

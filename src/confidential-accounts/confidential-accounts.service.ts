@@ -8,6 +8,7 @@ import {
   ConfidentialTransaction,
   EventIdEnum,
   Identity,
+  IncomingConfidentialAssetBalance,
   ResultSet,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
@@ -106,7 +107,7 @@ export class ConfidentialAccountsService {
   public async applyAllIncomingAssetBalances(
     confidentialAccount: string,
     base: TransactionBaseDto
-  ): ServiceReturn<ConfidentialAccount> {
+  ): ServiceReturn<IncomingConfidentialAssetBalance[]> {
     const { options } = extractTxOptions(base);
     const applyIncomingBalances =
       this.polymeshService.polymeshApi.confidentialAccounts.applyIncomingBalances;

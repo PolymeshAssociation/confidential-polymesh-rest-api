@@ -46,6 +46,7 @@ export class ConfidentialAssetDetailsModel {
   @ApiProperty({
     description: 'Auditor Confidential Accounts configured for the Confidential Asset',
     type: ConfidentialAccountModel,
+    isArray: true,
   })
   @Type(() => ConfidentialAccountModel)
   readonly auditors: ConfidentialAccountModel[];
@@ -53,6 +54,7 @@ export class ConfidentialAssetDetailsModel {
   @ApiPropertyOptional({
     description: 'Mediator Identities configured for the Confidential Asset',
     type: IdentityModel,
+    isArray: true,
   })
   @Type(() => IdentityModel)
   readonly mediators?: IdentityModel[];

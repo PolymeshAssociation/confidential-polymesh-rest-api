@@ -2127,10 +2127,10 @@
   dependencies:
     "@polymeshassociation/signing-manager-types" "^3.2.0"
 
-"@polymeshassociation/polymesh-private-sdk@1.2.0-alpha.2":
-  version "1.2.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-1.2.0-alpha.2.tgz#359f7dfd116f22aa3ae233554acfe24408b3310a"
-  integrity sha512-o/idh9HCd/J8OnWStj81CdXlDl6vfwVaQQ/qZNRi7ByKGG5Ax0+yAGfP7oFhywOFO1jThg5+MNu19wU/G4QECw==
+"@polymeshassociation/polymesh-private-sdk@2.0.0-alpha.1":
+  version "2.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@polymeshassociation/polymesh-private-sdk/-/polymesh-private-sdk-2.0.0-alpha.1.tgz#2ab01950798b1c7fff767e81a65f959fbe3bc257"
+  integrity sha512-0x7jsd6lWHibREneLFy9VCcl5bqHaIwxvQyowz/HSEEQwnBFG2ZEcSb2fkqra3ld46+1YSfWuDBtl1LT1FP7AA==
   dependencies:
     "@apollo/client" "^3.8.1"
     "@noble/curves" "^1.4.0"

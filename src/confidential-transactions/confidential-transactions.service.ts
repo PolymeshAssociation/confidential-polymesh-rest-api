@@ -42,7 +42,7 @@ export class ConfidentialTransactionsService {
     return await this.polymeshService.polymeshApi.confidentialSettlements
       .getTransaction({ id })
       .catch(error => {
-        throw handleSdkError(error);
+        throw handleSdkError(error, { id: id.toString(), resource: 'Confidential Transaction' });
       });
   }
 

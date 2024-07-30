@@ -8,10 +8,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
+import { IncomingConfidentialAssetBalance } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { TransactionHistoryParamsDto } from '~/confidential-accounts/dto/transaction-history-params.dto';
+import { AppliedConfidentialAssetBalanceModel } from '~/confidential-accounts/models/applied-confidential-asset-balance.model';
+import { AppliedConfidentialAssetBalancesModel } from '~/confidential-accounts/models/applied-confidential-asset-balances.model';
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
@@ -26,6 +29,7 @@ import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/pag
 import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 import {
   handleServiceResult,
+  TransactionResolver,
   TransactionResponseModel,
 } from '~/polymesh-rest-api/src/common/utils/functions';
 
@@ -240,7 +244,7 @@ export class ConfidentialAccountsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
-    type: TransactionQueueModel,
+    type: AppliedConfidentialAssetBalancesModel,
   })
   @ApiTransactionFailedResponse({
     [HttpStatus.UNPROCESSABLE_ENTITY]: [
@@ -257,7 +261,21 @@ export class ConfidentialAccountsController {
       params
     );
 
-    return handleServiceResult(result);
+    const resolver: TransactionResolver<IncomingConfidentialAssetBalance[]> = ({
+      result: appliedAssetBalances,
+      transactions,
+      details,
+    }) =>
+      new AppliedConfidentialAssetBalancesModel({
+        appliedAssetBalances: appliedAssetBalances.map(
+          ({ asset: { id: confidentialAsset }, amount, balance }) =>
+            new AppliedConfidentialAssetBalanceModel({ confidentialAsset, amount, balance })
+        ),
+        transactions,
+        details,
+      });
+
+    return handleServiceResult(result, resolver);
   }
 
   @ApiOperation({

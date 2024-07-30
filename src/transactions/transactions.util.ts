@@ -165,7 +165,7 @@ export async function processTransaction<
   }
 }
 
-export function handleSdkError(err: unknown): AppError {
+export function handleSdkError(err: unknown, args?: { id: string; resource: string }): AppError {
   if (isAppError(err)) {
     // don't transform App level errors
     return err;
@@ -192,6 +192,9 @@ export function handleSdkError(err: unknown): AppError {
       case ErrorCode.LimitExceeded:
         return new AppUnprocessableError(message);
       case ErrorCode.DataUnavailable:
+        if (args) {
+          return new AppNotFoundError(args.id, args.resource);
+        }
         return new AppNotFoundError(message, '');
       case ErrorCode.NotAuthorized:
         return new AppUnauthorizedError(message);

@@ -5,16 +5,24 @@ import {
   ConfidentialAccount,
   ConfidentialAssetHistoryEntry,
   EventIdEnum,
+  IncomingConfidentialAssetBalance,
   ResultSet,
+  TxTags,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountsController } from '~/confidential-accounts/confidential-accounts.controller';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
+import { AppliedConfidentialAssetBalanceModel } from '~/confidential-accounts/models/applied-confidential-asset-balance.model';
+import { AppliedConfidentialAssetBalancesModel } from '~/confidential-accounts/models/applied-confidential-asset-balances.model';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { testValues } from '~/test-utils/consts';
-import { createMockConfidentialAsset, createMockIdentity } from '~/test-utils/mocks';
+import { getMockTransaction, testValues } from '~/test-utils/consts';
+import {
+  createMockConfidentialAsset,
+  createMockIdentity,
+  createMockTransactionResult,
+} from '~/test-utils/mocks';
 import { mockConfidentialAccountsServiceProvider } from '~/test-utils/service-mocks';
 
 const { signer, txResult } = testValues;
@@ -130,12 +138,37 @@ describe('ConfidentialAccountsController', () => {
       const input = {
         signer,
       };
-      mockConfidentialAccountsService.applyAllIncomingAssetBalances.mockResolvedValue(
-        txResult as unknown as ServiceReturn<ConfidentialAccount>
-      );
+      const mockAsset = createMockConfidentialAsset();
+      const mockIncomingAssetBalances = [
+        {
+          asset: mockAsset,
+          amount: '0xamount',
+          balance: '0xbalance',
+        },
+      ];
+      const transaction = getMockTransaction(TxTags.confidentialAsset.ApplyIncomingBalances);
+
+      const testTxResult = createMockTransactionResult<IncomingConfidentialAssetBalance[]>({
+        ...txResult,
+        transactions: [transaction],
+        result: mockIncomingAssetBalances,
+      });
+      mockConfidentialAccountsService.applyAllIncomingAssetBalances.mockResolvedValue(testTxResult);
 
       const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(
+        new AppliedConfidentialAssetBalancesModel({
+          ...txResult,
+          transactions: [transaction],
+          appliedAssetBalances: [
+            new AppliedConfidentialAssetBalanceModel({
+              confidentialAsset: mockAsset.id,
+              amount: mockIncomingAssetBalances[0].amount,
+              balance: mockIncomingAssetBalances[0].balance,
+            }),
+          ],
+        })
+      );
     });
   });
 
