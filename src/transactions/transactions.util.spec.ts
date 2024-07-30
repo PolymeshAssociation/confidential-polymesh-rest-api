@@ -228,4 +228,14 @@ describe('handleSdkError', () => {
       expect(error).toBeInstanceOf(expectedError);
     });
   });
+  it('should return AppNotFoundError with resource specific info', () => {
+    const inputError = new PolymeshError({ code: ErrorCode.DataUnavailable, message: '' });
+    when(mockIsPolymeshError).calledWith(inputError).mockReturnValue(true);
+    const error = handleSdkError(inputError, { id: '1', resource: 'Example Resource' });
+
+    expect(error).toBeInstanceOf(AppNotFoundError);
+    expect(error.message).toEqual(
+      'Not Found: Example Resource was not found: with identifier: "1"'
+    );
+  });
 });

@@ -117,7 +117,10 @@ describe('ConfidentialTransactionsService', () => {
 
       await expect(() => service.findOne(id)).rejects.toThrowError();
 
-      expect(handleSdkErrorSpy).toHaveBeenCalledWith(mockError);
+      expect(handleSdkErrorSpy).toHaveBeenCalledWith(mockError, {
+        id: id.toString(),
+        resource: 'Confidential Transaction',
+      });
     });
   });
 
