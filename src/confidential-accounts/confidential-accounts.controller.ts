@@ -341,11 +341,6 @@ export class ConfidentialAccountsController {
     description: 'No Confidential Account was found',
   })
   @ApiTransactionFailedResponse({
-    [HttpStatus.NOT_FOUND]: [
-      'The Confidential Asset does not exists',
-      'Sender Confidential Account does not exists',
-      'Receiver Confidential Account does not exists',
-    ],
     [HttpStatus.UNPROCESSABLE_ENTITY]: [
       'The provided accounts must have identities associated with them',
       'Only the owner of the sender account can move funds',
