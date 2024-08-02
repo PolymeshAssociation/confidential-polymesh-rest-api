@@ -360,4 +360,39 @@ describe('ConfidentialAccountsService', () => {
       expect(result).toEqual(mockHistory);
     });
   });
+
+  describe('moveFunds', () => {
+    it('create a transaction and return service result', async () => {
+      const input = {
+        signer,
+        moves: [
+          {
+            from: '0x1',
+            to: '0x2',
+            proofs: [{ asset: 'someAsset', proof: 'SomeProof' }],
+          },
+        ],
+      };
+
+      const mockTransactions = {
+        blockHash: '0x1',
+        txHash: '0x2',
+        blockNumber: new BigNumber(1),
+        tag: TxTags.confidentialAsset.MoveAssets,
+      };
+      const mockTransaction = new MockTransaction(mockTransactions);
+
+      mockTransactionsService.submit.mockResolvedValue({
+        result: undefined,
+        transactions: [mockTransaction],
+      });
+
+      const result = await service.moveFunds(input);
+
+      expect(result).toEqual({
+        result: undefined,
+        transactions: [mockTransaction],
+      });
+    });
+  });
 });

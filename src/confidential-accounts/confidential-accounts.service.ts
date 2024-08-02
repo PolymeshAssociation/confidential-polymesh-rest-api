@@ -12,6 +12,7 @@ import {
   ResultSet,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
+import { MoveFundsDto } from '~/confidential-accounts/dto/move-funds.dto';
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
 import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { PolymeshService } from '~/polymesh/polymesh.service';
@@ -151,5 +152,14 @@ export class ConfidentialAccountsService {
     const account = await this.findOne(confidentialAccount);
 
     return account.getTransactionHistory(filters);
+  }
+
+  public async moveFunds(params: MoveFundsDto): ServiceReturn<void> {
+    const { options, args } = extractTxOptions(params);
+    const { moves } = args;
+
+    const confidentialAccounts = this.polymeshService.polymeshApi.confidentialAccounts;
+
+    return this.transactionsService.submit(confidentialAccounts.moveFunds, moves, options);
   }
 }
