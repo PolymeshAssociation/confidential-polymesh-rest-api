@@ -341,11 +341,16 @@ export class ConfidentialAccountsController {
     description: 'No Confidential Account was found',
   })
   @ApiTransactionFailedResponse({
+    [HttpStatus.NOT_FOUND]: [
+      'The sending Confidential Account does not exist',
+      'The receiving Confidential Account does not exist',
+    ],
     [HttpStatus.UNPROCESSABLE_ENTITY]: [
       'The provided accounts must have identities associated with them',
       'Only the owner of the sender account can move funds',
       'The provided accounts must have the same identity',
-      'The asset is frozen',
+      'Confidential Assets that do not exist were provided',
+      'Assets are frozen for trading',
       'The sender account is frozen for trading specified asset',
       'The receiver account is frozen for trading specified asset',
     ],
