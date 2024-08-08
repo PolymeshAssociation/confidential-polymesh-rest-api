@@ -1,13 +1,14 @@
 /* istanbul ignore file */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsString, ValidateNested } from 'class-validator';
 
-import { ProofDto } from '~/confidential-accounts/dto/proof.dto';
+import { ConfidentialLegAmountDto } from '~/confidential-transactions/dto/confidential-leg-amount.dto';
 
 export class FundMovesDto {
   @ApiProperty({
-    description: 'The Confidential Account from which to move the funds from',
+    description: 'The Confidential Account from which to move the funds',
     example: '0xdeadbeef00000000000000000000000000000000000000000000000000000000',
     type: 'string',
   })
@@ -15,7 +16,7 @@ export class FundMovesDto {
   readonly from: string;
 
   @ApiProperty({
-    description: 'The Confidential Account to which to move the funds to',
+    description: 'The Confidential Account to which to move the funds',
     example: '0xdeadbeef00000000000000000000000000000000000000000000000000000000',
     type: 'string',
   })
@@ -23,10 +24,12 @@ export class FundMovesDto {
   readonly to: string;
 
   @ApiProperty({
-    description: 'Proofs of the transaction',
-    type: ProofDto,
+    description: 'Assets and their amounts to move',
+    type: ConfidentialLegAmountDto,
     isArray: true,
   })
   @IsArray()
-  proofs: ProofDto[];
+  @ValidateNested({ each: true })
+  @Type(() => ConfidentialLegAmountDto)
+  assetMoves: ConfidentialLegAmountDto[];
 }

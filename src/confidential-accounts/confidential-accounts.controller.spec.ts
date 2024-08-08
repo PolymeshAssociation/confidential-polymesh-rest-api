@@ -229,11 +229,11 @@ describe('ConfidentialAccountsController', () => {
     it('should call the service and return the results', async () => {
       const input = {
         signer,
-        moves: [
+        fundMoves: [
           {
             from: '0xfrom',
             to: '0xto',
-            proofs: [{ asset: 'someAsset', proof: 'someProof' }],
+            assetMoves: [{ confidentialAsset: 'someAsset', amount: new BigNumber(1000) }],
           },
         ],
       };
