@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAccount,
@@ -16,6 +16,7 @@ import {
 import { FundMovesDto } from '~/confidential-accounts/dto/fund-moves.dto';
 import { MoveFundsDto } from '~/confidential-accounts/dto/move-funds.dto';
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
+import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { PolymeshService } from '~/polymesh/polymesh.service';
@@ -29,7 +30,9 @@ export class ConfidentialAccountsService {
   constructor(
     private readonly polymeshService: PolymeshService,
     private readonly transactionsService: TransactionsService,
-    private readonly confidentialProofsService: ConfidentialProofsService
+    private readonly confidentialProofsService: ConfidentialProofsService,
+    @Inject(forwardRef(() => ConfidentialAssetsService))
+    private readonly confidentialAssetsService: ConfidentialAssetsService
   ) {}
 
   public async findOne(publicKey: string): Promise<ConfidentialAccount> {
@@ -164,13 +167,9 @@ export class ConfidentialAccountsService {
 
     const confidentialAccounts = this.polymeshService.polymeshApi.confidentialAccounts;
 
-    const moves = await Promise.all(
-      fundMoves.map(async fundMove => {
-        const moveFundsParams = await this.fundMoveToMoveFundsParams(fundMove);
+    const movePromises = fundMoves.map(fundMove => this.fundMoveToMoveFundsParams(fundMove));
 
-        return moveFundsParams;
-      })
-    );
+    const moves = await Promise.all(movePromises);
 
     return this.transactionsService.submit(confidentialAccounts.moveFunds, moves, options);
   }
@@ -180,33 +179,43 @@ export class ConfidentialAccountsService {
 
     const [fromAccount, toAccount] = await Promise.all([this.findOne(from), this.findOne(to)]);
 
-    const proofs = await Promise.all(
-      assetMoves.map(async ({ confidentialAsset, amount }) => {
-        const assetBalance = await this.getAssetBalance(from, confidentialAsset);
-        const asset =
-          await this.polymeshService.polymeshApi.confidentialAssets.getConfidentialAsset({
-            id: confidentialAsset,
-          });
+    const getProof = async (
+      confidentialAsset: string,
+      amount: BigNumber
+    ): Promise<{
+      asset: ConfidentialAsset;
+      amount: BigNumber;
+      proof: string;
+    }> => {
+      const [assetBalance, asset] = await Promise.all([
+        this.getAssetBalance(from, confidentialAsset),
+        this.confidentialAssetsService.findOne(confidentialAsset),
+      ]);
 
-        const { auditors } = await asset.getAuditors();
+      const { auditors } = await asset.getAuditors();
 
-        const proof = await this.confidentialProofsService.generateSenderProof(
-          fromAccount.publicKey,
-          {
-            amount,
-            auditors: auditors.map(auditor => auditor.publicKey),
-            receiver: toAccount.publicKey,
-            encryptedBalance: assetBalance.balance,
-          }
-        );
-
-        return {
-          asset,
+      const proof = await this.confidentialProofsService.generateSenderProof(
+        fromAccount.publicKey,
+        {
           amount,
-          proof,
-        };
-      })
+          auditors: auditors.map(auditor => auditor.publicKey),
+          receiver: toAccount.publicKey,
+          encryptedBalance: assetBalance.balance,
+        }
+      );
+
+      return {
+        asset,
+        amount,
+        proof,
+      };
+    };
+
+    const proofPromises = assetMoves.map(({ confidentialAsset, amount }) =>
+      getProof(confidentialAsset, amount)
     );
+
+    const proofs = await Promise.all(proofPromises);
 
     return {
       from: fromAccount,

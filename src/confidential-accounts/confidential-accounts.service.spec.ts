@@ -12,6 +12,7 @@ import {
 import { when } from 'jest-when';
 
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
+import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { ConfidentialTransactionDirectionEnum } from '~/confidential-transactions/types';
 import { POLYMESH_API } from '~/polymesh/polymesh.consts';
@@ -26,6 +27,7 @@ import {
   MockTransaction,
 } from '~/test-utils/mocks';
 import {
+  mockConfidentialAssetsServiceProvider,
   mockConfidentialProofsServiceProvider,
   mockTransactionsProvider,
   MockTransactionsService,
@@ -41,6 +43,7 @@ describe('ConfidentialAccountsService', () => {
   let polymeshService: PolymeshService;
   let mockTransactionsService: MockTransactionsService;
   let mockConfidentialProofsService: DeepMocked<ConfidentialProofsService>;
+  let mockConfidentialAssetsService: DeepMocked<ConfidentialAssetsService>;
   const confidentialAccount = 'SOME_PUBLIC_KEY';
 
   beforeEach(async () => {
@@ -52,6 +55,7 @@ describe('ConfidentialAccountsService', () => {
         ConfidentialAccountsService,
         mockTransactionsProvider,
         mockConfidentialProofsServiceProvider,
+        mockConfidentialAssetsServiceProvider,
       ],
     })
       .overrideProvider(POLYMESH_API)
@@ -63,6 +67,8 @@ describe('ConfidentialAccountsService', () => {
     mockTransactionsService = module.get<MockTransactionsService>(TransactionsService);
     mockConfidentialProofsService =
       module.get<typeof mockConfidentialProofsService>(ConfidentialProofsService);
+    mockConfidentialAssetsService =
+      module.get<typeof mockConfidentialAssetsService>(ConfidentialAssetsService);
 
     service = module.get<ConfidentialAccountsService>(ConfidentialAccountsService);
   });
@@ -394,8 +400,8 @@ describe('ConfidentialAccountsService', () => {
         .spyOn(service, 'getAssetBalance')
         .mockResolvedValue({ confidentialAsset: mockAsset.id, balance });
 
-      when(polymeshService.polymeshApi.confidentialAssets.getConfidentialAsset)
-        .calledWith({ id: mockAsset.id })
+      when(mockConfidentialAssetsService.findOne)
+        .calledWith(mockAsset.id)
         .mockResolvedValue(mockAsset);
       when(mockConfidentialProofsService.generateSenderProof)
         .calledWith(mockFromAccount.publicKey, {

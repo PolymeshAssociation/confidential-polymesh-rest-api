@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
   ConfidentialAsset,
@@ -26,7 +26,8 @@ export class ConfidentialAssetsService {
     private readonly polymeshService: PolymeshService,
     private readonly transactionsService: TransactionsService,
     private readonly confidentialProofsService: ConfidentialProofsService,
-    private readonly confidentialAccountsService: ConfidentialAccountsService
+    @Inject(forwardRef(() => ConfidentialAccountsService))
+    private confidentialAccountsService: ConfidentialAccountsService
   ) {}
 
   public async findOne(id: string): Promise<ConfidentialAsset> {

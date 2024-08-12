@@ -12,8 +12,8 @@ import { TransactionsModule } from '~/transactions/transactions.module';
   imports: [
     PolymeshModule,
     TransactionsModule,
-    forwardRef(() => ConfidentialAccountsModule),
     forwardRef(() => ConfidentialProofsModule.register()),
+    forwardRef(() => ConfidentialAccountsModule),
   ],
   controllers: [ConfidentialAssetsController],
   providers: [ConfidentialAssetsService],
