@@ -7,6 +7,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ConfidentialTransaction } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountParamsDto } from '~/confidential-accounts/dto/confidential-account-params.dto';
 import { ConfidentialAccountModel } from '~/confidential-accounts/models/confidential-account.model';
@@ -21,13 +22,14 @@ import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver
 import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
 import { AuditorVerifyTransactionModel } from '~/confidential-proofs/models/auditor-verify-transaction.model';
 import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-balance.model';
+import { SenderAffirmationModel } from '~/confidential-proofs/models/sender-affirmation.model';
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto';
 import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
-import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 import {
   handleServiceResult,
+  TransactionResolver,
   TransactionResponseModel,
 } from '~/polymesh-rest-api/src/common/utils/functions';
 
@@ -97,7 +99,7 @@ export class ConfidentialProofsController {
   })
   @ApiOkResponse({
     description: 'Details of the transaction',
-    type: TransactionQueueModel,
+    type: SenderAffirmationModel,
   })
   @ApiInternalServerErrorResponse({
     description: 'Proof server returned a non-OK status',
@@ -107,8 +109,13 @@ export class ConfidentialProofsController {
     @Param() { id }: IdParamsDto,
     @Body() body: SenderAffirmConfidentialTransactionDto
   ): Promise<TransactionResponseModel> {
-    const result = await this.confidentialTransactionsService.senderAffirmLeg(id, body);
-    return handleServiceResult(result);
+    const { result, proofs } = await this.confidentialTransactionsService.senderAffirmLeg(id, body);
+
+    const resolver: TransactionResolver<ConfidentialTransaction> = ({ transactions, details }) => {
+      return new SenderAffirmationModel({ transactions, details, proofs });
+    };
+
+    return handleServiceResult(result, resolver);
   }
 
   @ApiTags('confidential-transactions')

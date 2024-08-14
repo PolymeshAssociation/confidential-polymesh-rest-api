@@ -20,6 +20,7 @@ import { createConfidentialTransactionModel } from '~/confidential-transactions/
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto';
+import { ConfidentialProofModel } from '~/confidential-transactions/models/confidential-proof.model';
 import { ExtendedIdentitiesService } from '~/extended-identities/identities.service';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
@@ -100,26 +101,29 @@ export class ConfidentialTransactionsService {
   public async senderAffirmLeg(
     transactionId: BigNumber,
     body: SenderAffirmConfidentialTransactionDto
-  ): ServiceReturn<ConfidentialTransaction> {
+  ): Promise<{
+    result: Awaited<ServiceReturn<ConfidentialTransaction>>;
+    proofs: ConfidentialProofModel[];
+  }> {
     const tx = await this.findOne(transactionId);
 
-    const transaction = await createConfidentialTransactionModel(tx);
+    const txModel = await createConfidentialTransactionModel(tx);
 
     const { options, args } = extractTxOptions(body);
 
     const { legId, legAmounts } = args as SenderAffirmConfidentialTransactionDto;
 
-    if (legId.gte(transaction.legs.length)) {
+    if (legId.gte(txModel.legs.length)) {
       throw new AppValidationError('Invalid leg ID received');
     }
 
-    const { receiver, sender, assetAuditors } = transaction.legs[legId.toNumber()];
+    const { receiver, sender, assetAuditors } = txModel.legs[legId.toNumber()];
 
     const senderConfidentialAccount = await this.confidentialAccountsService.findOne(
       sender.publicKey
     );
 
-    const proofs = [];
+    const proofs: ConfidentialProofModel[] = [];
 
     for (const legAmount of legAmounts) {
       const { amount, confidentialAsset } = legAmount;
@@ -140,10 +144,10 @@ export class ConfidentialTransactionsService {
         encryptedBalance,
       });
 
-      proofs.push({ asset: confidentialAsset, proof });
+      proofs.push(new ConfidentialProofModel({ asset: confidentialAsset, proof }));
     }
 
-    return this.transactionsService.submit(
+    const result = await this.transactionsService.submit(
       tx.affirmLeg,
       {
         legId,
@@ -152,6 +156,8 @@ export class ConfidentialTransactionsService {
       },
       options
     );
+
+    return { result, proofs };
   }
 
   public async rejectTransaction(

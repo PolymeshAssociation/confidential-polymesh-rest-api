@@ -388,8 +388,11 @@ describe('ConfidentialTransactionsService', () => {
       const result = await service.senderAffirmLeg(new BigNumber(1), { ...body, signer });
 
       expect(result).toEqual({
-        result: mockConfidentialTransaction,
-        transactions: [mockTransaction],
+        result: {
+          result: mockConfidentialTransaction,
+          transactions: [mockTransaction],
+        },
+        proofs: [{ asset: 'SOME_ASSET_ID', proof: 'some_proof' }],
       });
     });
   });

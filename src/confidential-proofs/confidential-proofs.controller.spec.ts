@@ -12,6 +12,7 @@ import { ConfidentialAssetsService } from '~/confidential-assets/confidential-as
 import { ConfidentialProofsController } from '~/confidential-proofs/confidential-proofs.controller';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { ConfidentialAccountEntity } from '~/confidential-proofs/entities/confidential-account.entity';
+import { SenderAffirmationModel } from '~/confidential-proofs/models/sender-affirmation.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { testValues, txResult } from '~/test-utils/consts';
@@ -102,10 +103,18 @@ describe('ConfidentialProofsController', () => {
 
       when(mockConfidentialTransactionsService.senderAffirmLeg)
         .calledWith(transactionId, input)
-        .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialTransaction>);
+        .mockResolvedValue({
+          result: txResult as unknown as Awaited<ServiceReturn<ConfidentialTransaction>>,
+          proofs: [{ asset: 'someId', proof: 'someProof' }],
+        });
 
       const result = await controller.senderAffirmLeg({ id: transactionId }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(
+        new SenderAffirmationModel({
+          ...txResult,
+          proofs: [{ asset: 'someId', proof: 'someProof' }],
+        })
+      );
     });
   });
 
