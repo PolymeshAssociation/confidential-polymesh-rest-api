@@ -2,6 +2,7 @@ import { DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 import {
+  ConfidentialAffirmParty,
   ConfidentialAsset,
   ConfidentialTransaction,
 } from '@polymeshassociation/polymesh-private-sdk/types';
@@ -14,6 +15,7 @@ import { ConfidentialProofsService } from '~/confidential-proofs/confidential-pr
 import { ConfidentialAccountEntity } from '~/confidential-proofs/entities/confidential-account.entity';
 import { SenderAffirmationModel } from '~/confidential-proofs/models/sender-affirmation.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
+import { VerifyAndAffirmDto } from '~/confidential-transactions/dto/verify-and-affirm.dto';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { testValues, txResult } from '~/test-utils/consts';
 import {
@@ -214,6 +216,26 @@ describe('ConfidentialProofsController', () => {
 
       const result = await controller.verifyAmounts({ id }, input);
       expect(result).toEqual({ verifications: [] });
+    });
+  });
+
+  describe('verifyAndAffirmLeg', () => {
+    it('should call the service and return the results', async () => {
+      const input: VerifyAndAffirmDto = {
+        publicKey: 'SOME_PUBLIC_KEY',
+        legId: new BigNumber(0),
+        expectedAmounts: [],
+        party: ConfidentialAffirmParty.Receiver,
+      };
+      const id = new BigNumber(1);
+
+      when(mockConfidentialTransactionsService.verifyAndAffirmLeg)
+        .calledWith(id, input)
+        .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialTransaction>);
+
+      const result = await controller.verifyAndAffirmLeg({ id }, input);
+
+      expect(result).toEqual(txResult);
     });
   });
 });

@@ -8,23 +8,26 @@ import {
   ConfidentialVenue,
   EventIdentifier,
   Identity,
+  SenderProofs,
 } from '@polymeshassociation/polymesh-private-sdk/types';
 
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
-import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
-import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
-import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver-verify-sender-proof.dto';
+import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/verify-transaction-amounts.dto';
 import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
+import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
 import { createConfidentialTransactionModel } from '~/confidential-transactions/confidential-transactions.util';
+import { ConfidentialLegAmountDto } from '~/confidential-transactions/dto/confidential-leg-amount.dto';
 import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dto/create-confidential-transaction.dto';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto';
+import { VerifyAndAffirmDto } from '~/confidential-transactions/dto/verify-and-affirm.dto';
 import { ConfidentialProofModel } from '~/confidential-transactions/models/confidential-proof.model';
+import { ProofDecryptRequest } from '~/confidential-transactions/types';
 import { ExtendedIdentitiesService } from '~/extended-identities/identities.service';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
-import { AppValidationError } from '~/polymesh-rest-api/src/common/errors';
+import { AppNotFoundError, AppValidationError } from '~/polymesh-rest-api/src/common/errors';
 import { extractTxOptions, ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { TransactionsService } from '~/transactions/transactions.service';
 import { handleSdkError } from '~/transactions/transactions.util';
@@ -206,12 +209,13 @@ export class ConfidentialTransactionsService {
     params: VerifyTransactionAmountsDto
   ): Promise<AuditorVerifyProofModel[]> {
     const transaction = await this.findOne(transactionId);
-    const { proved, pending } = await transaction.getProofDetails();
-    const publicKey = params.publicKey;
+    const legDetails = await transaction.getProofDetails();
 
-    const response: AuditorVerifyProofModel[] = [];
+    const { publicKey, legAmounts } = params;
 
-    pending.forEach(value => {
+    const unProvenResponses: AuditorVerifyProofModel[] = [];
+
+    legDetails.pending.forEach(value => {
       let isReceiver = false;
       if (value.receiver.publicKey === publicKey) {
         isReceiver = true;
@@ -220,7 +224,7 @@ export class ConfidentialTransactionsService {
       value.proofs.forEach(assetProof => {
         const isAuditor = assetProof.auditors.map(auditor => auditor.publicKey).includes(publicKey);
 
-        response.push({
+        unProvenResponses.push({
           isProved: false,
           isAuditor,
           isReceiver,
@@ -234,123 +238,197 @@ export class ConfidentialTransactionsService {
       });
     });
 
-    const auditorRequests: {
-      confidentialAccount: string;
-      params: AuditorVerifySenderProofDto;
-      trackers: { legId: BigNumber; assetId: string };
-    }[] = [];
+    const decryptedResponses = await Promise.all(
+      legDetails.proved.map(leg => {
+        const expectedAmounts = legAmounts?.find(({ legId: id }) => id.eq(leg.legId));
 
-    const receiverRequests: {
-      confidentialAccount: string;
-      params: ReceiverVerifySenderProofDto;
-      trackers: { legId: BigNumber; assetId: string; isAuditor: boolean };
-    }[] = [];
+        return this.decryptLeg(leg, publicKey, expectedAmounts?.expectedAmounts);
+      })
+    );
 
-    proved.forEach(value => {
-      let isReceiver = false;
-      if (value.receiver.publicKey === publicKey) {
-        isReceiver = true;
+    return [...unProvenResponses, ...decryptedResponses.flat()].sort((a, b) =>
+      a.legId.minus(b.legId).toNumber()
+    );
+  }
+
+  public async decryptLeg(
+    provenLeg: SenderProofs,
+    publicKey: string,
+    expectedAmounts: ConfidentialLegAmountDto[] | undefined
+  ): Promise<AuditorVerifyProofModel[]> {
+    const response: AuditorVerifyProofModel[] = [];
+
+    const { legId } = provenLeg;
+
+    const findExpectedAmount = (assetId: string): BigNumber | null => {
+      const expectedAmount = expectedAmounts?.find(({ confidentialAsset: id }) => id === assetId);
+
+      if (!expectedAmount) {
+        return null;
       }
 
-      value.proofs.forEach(assetProof => {
-        const auditorIndex = assetProof.auditors.findIndex(
-          auditorKey => auditorKey.publicKey === publicKey
-        );
+      return expectedAmount.amount;
+    };
 
-        const isAuditor = auditorIndex >= 0;
+    const decryptRequests: ProofDecryptRequest[] = [];
 
-        if (isReceiver) {
-          receiverRequests.push({
-            confidentialAccount: publicKey,
-            params: {
-              senderProof: assetProof.proof,
-              amount: null,
-            },
-            trackers: { assetId: assetProof.assetId, legId: value.legId, isAuditor },
-          });
-        } else if (isAuditor) {
-          auditorRequests.push({
-            confidentialAccount: publicKey,
-            params: {
-              senderProof: assetProof.proof,
-              auditorId: new BigNumber(auditorIndex),
-              amount: null,
-            },
-            trackers: { assetId: assetProof.assetId, legId: value.legId },
-          });
-        } else {
+    let isReceiver = false;
+    if (provenLeg.receiver.publicKey === publicKey) {
+      isReceiver = true;
+    }
+
+    provenLeg.proofs.forEach(assetProof => {
+      const auditorIndex = assetProof.auditors.findIndex(
+        auditorKey => auditorKey.publicKey === publicKey
+      );
+
+      const isAuditor = auditorIndex >= 0;
+
+      const expectedAmount = findExpectedAmount(assetProof.assetId);
+
+      if (isReceiver) {
+        decryptRequests.push({
+          confidentialAccount: publicKey,
+          params: {
+            senderProof: assetProof.proof,
+            amount: expectedAmount,
+          },
+          trackers: {
+            assetId: assetProof.assetId,
+            legId,
+            amountGiven: expectedAmount,
+            isAuditor,
+          },
+          type: 'receiver',
+        });
+      } else if (isAuditor) {
+        decryptRequests.push({
+          confidentialAccount: publicKey,
+          params: {
+            senderProof: assetProof.proof,
+            auditorId: new BigNumber(auditorIndex),
+            amount: expectedAmount,
+          },
+          trackers: {
+            assetId: assetProof.assetId,
+            legId,
+            amountGiven: expectedAmount,
+            isAuditor,
+          },
+          type: 'auditor',
+        });
+      } else {
+        response.push({
+          isProved: true,
+          isAuditor: false,
+          isReceiver: false,
+          amountDecrypted: false,
+          legId,
+          assetId: assetProof.assetId,
+          amount: null,
+          isValid: null,
+          errMsg: null,
+        });
+      }
+    });
+
+    await Promise.all(
+      decryptRequests.map(
+        async ({
+          confidentialAccount,
+          params: proofParams,
+          type,
+          trackers: { assetId, isAuditor },
+        }) => {
+          let proofResponse: SenderProofVerificationResponseModel;
+          let isReceiverRequest = false;
+
+          if (type === 'auditor') {
+            proofResponse = await this.confidentialProofsService.verifySenderProofAsAuditor(
+              confidentialAccount,
+              proofParams
+            );
+          } else {
+            isReceiverRequest = true;
+            proofResponse = await this.confidentialProofsService.verifySenderProofAsReceiver(
+              confidentialAccount,
+              proofParams
+            );
+          }
+
           response.push({
             isProved: true,
-            isAuditor: false,
-            isReceiver: false,
-            amountDecrypted: false,
-            legId: value.legId,
-            assetId: assetProof.assetId,
-            amount: null,
-            isValid: null,
-            errMsg: null,
+            isAuditor,
+            isReceiver: isReceiverRequest,
+            amountDecrypted: true,
+            amount: proofResponse.amount,
+            assetId,
+            legId,
+            errMsg: proofResponse.errMsg,
+            isValid: proofResponse.isValid,
           });
         }
-      });
-    });
-
-    const auditorResponses = await Promise.all(
-      auditorRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
-        const proofResponse = await this.confidentialProofsService.verifySenderProofAsAuditor(
-          confidentialAccount,
-          proofParams
-        );
-
-        return {
-          proofResponse,
-          trackers,
-        };
-      })
+      )
     );
 
-    const receiverResponses = await Promise.all(
-      receiverRequests.map(async ({ confidentialAccount, params: proofParams, trackers }) => {
-        const proofResponse = await this.confidentialProofsService.verifySenderProofAsReceiver(
-          confidentialAccount,
-          proofParams
-        );
+    return response;
+  }
 
-        return {
-          proofResponse,
-          trackers,
-        };
-      })
+  public async verifyAndAffirmLeg(
+    transactionId: BigNumber,
+    params: VerifyAndAffirmDto
+  ): ServiceReturn<ConfidentialTransaction> {
+    const transaction = await this.findOne(transactionId);
+
+    const {
+      args: { publicKey, expectedAmounts, legId },
+    } = extractTxOptions(params);
+
+    const { proved } = await transaction.getProofDetails();
+
+    const provedLeg = proved.find(({ legId: id }) => id.eq(legId));
+
+    if (!provedLeg) {
+      throw new AppNotFoundError('leg was not proven', 'transaction');
+    }
+
+    const results = await this.decryptLeg(provedLeg, publicKey, expectedAmounts);
+
+    const failedLegs = results.filter(({ isValid }) => !isValid);
+
+    if (failedLegs.length) {
+      const message = `Invalid legs: [${failedLegs.map(leg =>
+        leg.legId.toString()
+      )}], errors: [${failedLegs.map(leg => leg.errMsg)}]`;
+
+      throw new AppValidationError(message);
+    }
+
+    const decryptedResults = results.filter(({ amountDecrypted }) => amountDecrypted);
+
+    if (decryptedResults.length !== expectedAmounts.length) {
+      throw new AppValidationError(
+        `Expected amounts and decrypted amounts were different. Expected ${expectedAmounts.length} assets but decrypted ${decryptedResults.length}`
+      );
+    }
+
+    const decryptedNotExpected = decryptedResults.filter(
+      result => !expectedAmounts.some(expected => expected.confidentialAsset === result.assetId)
     );
 
-    auditorResponses.forEach(({ proofResponse, trackers: { assetId, legId } }) => {
-      response.push({
-        isProved: true,
-        isAuditor: true,
-        isReceiver: false,
-        amountDecrypted: true,
-        amount: proofResponse.amount,
-        assetId,
-        legId,
-        errMsg: proofResponse.errMsg,
-        isValid: proofResponse.isValid,
-      });
-    });
+    if (decryptedNotExpected.length) {
+      const expectedNotDecrypted = expectedAmounts.filter(
+        expected => !decryptedResults.some(result => expected.confidentialAsset === result.assetId)
+      );
 
-    receiverResponses.forEach(({ proofResponse, trackers: { assetId, legId, isAuditor } }) => {
-      response.push({
-        isProved: true,
-        isAuditor,
-        isReceiver: true,
-        amountDecrypted: true,
-        amount: proofResponse.amount,
-        assetId,
-        legId,
-        errMsg: proofResponse.errMsg,
-        isValid: proofResponse.isValid,
-      });
-    });
+      throw new AppValidationError(
+        `Expected and decrypted had different assets. Expected assets: ${expectedNotDecrypted.map(
+          ({ confidentialAsset }) => confidentialAsset
+        )}, decrypted: ${decryptedNotExpected.map(({ assetId }) => assetId)}`
+      );
+    }
 
-    return response.sort((a, b) => a.legId.minus(b.legId).toNumber());
+    return this.observerAffirmLeg(transactionId, params);
   }
 
   public async createdAt(id: BigNumber): Promise<EventIdentifier | null> {

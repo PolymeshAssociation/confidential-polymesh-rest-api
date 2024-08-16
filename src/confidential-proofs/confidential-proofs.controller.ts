@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -16,9 +17,9 @@ import { BurnConfidentialAssetsDto } from '~/confidential-assets/dto/burn-confid
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { AuditorVerifySenderProofDto } from '~/confidential-proofs/dto/auditor-verify-sender-proof.dto';
-import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/auditor-verify-transaction.dto';
 import { DecryptBalanceDto } from '~/confidential-proofs/dto/decrypt-balance.dto';
 import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver-verify-sender-proof.dto';
+import { VerifyTransactionAmountsDto } from '~/confidential-proofs/dto/verify-transaction-amounts.dto';
 import { AuditorVerifyProofModel } from '~/confidential-proofs/models/auditor-verify-proof.model';
 import { AuditorVerifyTransactionModel } from '~/confidential-proofs/models/auditor-verify-transaction.model';
 import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-balance.model';
@@ -26,7 +27,9 @@ import { SenderAffirmationModel } from '~/confidential-proofs/models/sender-affi
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto';
+import { VerifyAndAffirmDto } from '~/confidential-transactions/dto/verify-and-affirm.dto';
 import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 import {
   handleServiceResult,
   TransactionResolver,
@@ -152,6 +155,48 @@ export class ConfidentialProofsController {
     );
 
     return new AuditorVerifyTransactionModel({ verifications });
+  }
+
+  @ApiTags('confidential-transactions')
+  @ApiOperation({
+    summary: 'Verify and affirm a proof as a sender',
+    description:
+      'This endpoint takes expected asset amounts for a leg, uses the proof server to decrypt the amounts and affirms if they are the expected amounts',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the Confidential Transaction to be verified',
+    type: 'string',
+    example: '123',
+  })
+  @ApiOkResponse({
+    description: 'Details of the transaction',
+    type: TransactionQueueModel,
+  })
+  @ApiNotFoundResponse({
+    description:
+      '<ul>' + '<li>Transaction was not found</li>' + '<li>Leg was not found</li>' + '</ul>',
+  })
+  @ApiBadRequestResponse({
+    description:
+      '<ul>' +
+      '<li>At least one asset amount must be provided</li>' +
+      '<li>Expected leg amounts did not match actual amounts</li>' +
+      '<li>Expected amounts and decrypted amounts were different</li>' +
+      '<li>Expected and decrypted had different assets</li>' +
+      '</ul>',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Proof server returned a non-OK status',
+  })
+  @Post('confidential-transactions/:id/verify-and-affirm-leg')
+  public async verifyAndAffirmLeg(
+    @Param() { id }: IdParamsDto,
+    @Body() body: VerifyAndAffirmDto
+  ): Promise<TransactionResponseModel> {
+    const result = await this.confidentialTransactionsService.verifyAndAffirmLeg(id, body);
+
+    return handleServiceResult(result);
   }
 
   @ApiTags('confidential-accounts')

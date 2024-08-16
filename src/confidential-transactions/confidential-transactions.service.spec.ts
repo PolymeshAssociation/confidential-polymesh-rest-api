@@ -18,6 +18,7 @@ import { ConfidentialTransactionsService } from '~/confidential-transactions/con
 import * as confidentialTransactionsUtilModule from '~/confidential-transactions/confidential-transactions.util';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { SenderAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/sender-affirm-confidential-transaction.dto';
+import { VerifyAndAffirmDto } from '~/confidential-transactions/dto/verify-and-affirm.dto';
 import { ConfidentialAssetAuditorModel } from '~/confidential-transactions/models/confidential-asset-auditor.model';
 import { ConfidentialTransactionModel } from '~/confidential-transactions/models/confidential-transaction.model';
 import { ExtendedIdentitiesService } from '~/extended-identities/identities.service';
@@ -25,8 +26,9 @@ import { POLYMESH_API } from '~/polymesh/polymesh.consts';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { PolymeshService } from '~/polymesh/polymesh.service';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { AppNotFoundError, AppValidationError } from '~/polymesh-rest-api/src/common/errors';
 import { ProcessMode } from '~/polymesh-rest-api/src/common/types';
-import { testValues } from '~/test-utils/consts';
+import { testValues, txResult } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
   createMockConfidentialTransaction,
@@ -701,6 +703,12 @@ describe('ConfidentialTransactionsService', () => {
 
       const result = await service.verifyTransactionAmounts(mockConfidentialTransaction.id, {
         publicKey,
+        legAmounts: [
+          {
+            legId: new BigNumber(1),
+            expectedAmounts: [{ confidentialAsset: assetId, amount: new BigNumber(100) }],
+          },
+        ],
       });
 
       expect(result).toEqual([
@@ -847,6 +855,131 @@ describe('ConfidentialTransactionsService', () => {
           },
         ])
       );
+    });
+  });
+
+  describe('verifyAndAffirmLeg', () => {
+    let params: VerifyAndAffirmDto;
+    let affirmSpy: jest.SpyInstance;
+    let decryptSpy: jest.SpyInstance;
+    let transaction: DeepMocked<ConfidentialTransaction>;
+
+    beforeEach(() => {
+      params = {
+        legId: new BigNumber(0),
+        expectedAmounts: [
+          {
+            confidentialAsset: 'someAssetId',
+            amount: new BigNumber(10),
+          },
+        ],
+        publicKey: '0x123',
+        party: ConfidentialAffirmParty.Receiver,
+        options: {
+          processMode: ProcessMode.Submit,
+          signer: 'signer',
+        },
+      };
+      transaction = createMock<ConfidentialTransaction>();
+
+      affirmSpy = jest.spyOn(service, 'observerAffirmLeg');
+      decryptSpy = jest.spyOn(service, 'decryptLeg');
+      transaction.getProofDetails.mockResolvedValue({
+        proved: [
+          {
+            legId: new BigNumber(0),
+            sender: createMock<ConfidentialAccount>(),
+            receiver: createMock<ConfidentialAccount>(),
+            proofs: [],
+          },
+        ],
+        pending: [],
+      });
+      jest.spyOn(service, 'findOne').mockResolvedValue(transaction);
+
+      decryptSpy.mockResolvedValue([
+        {
+          legId: new BigNumber(0),
+          isValid: true,
+          amountDecrypted: true,
+          assetId: 'someAssetId',
+          amount: new BigNumber(10),
+        },
+      ]);
+    });
+
+    it('should affirm the transaction', async () => {
+      affirmSpy.mockResolvedValue({ ...txResult, result: transaction });
+
+      const result = await service.verifyAndAffirmLeg(id, params);
+
+      expect(result).toEqual({ ...txResult, result: transaction });
+    });
+
+    it('should throw an error if the transaction has not yet been proved', async () => {
+      transaction.getProofDetails.mockResolvedValue({
+        proved: [],
+        pending: [
+          {
+            legId: new BigNumber(0),
+            sender: createMock<ConfidentialAccount>(),
+            receiver: createMock<ConfidentialAccount>(),
+            proofs: [],
+          },
+        ],
+      });
+
+      expect(service.verifyAndAffirmLeg(id, params)).rejects.toThrow(AppNotFoundError);
+    });
+
+    it('should throw an error if there was a failure decrypting the transaction', async () => {
+      decryptSpy.mockResolvedValue([
+        {
+          legId: new BigNumber(0),
+          isValid: false,
+          amountDecrypted: true,
+          assetId: 'someAssetId',
+          amount: new BigNumber(10),
+          errMsg: 'invalid amount',
+        },
+      ]);
+
+      expect(service.verifyAndAffirmLeg(id, params)).rejects.toThrow(AppValidationError);
+    });
+
+    it('should throw an error if there was a mismatch in the amounts of assets decrypted', async () => {
+      decryptSpy.mockResolvedValue([
+        {
+          legId: new BigNumber(0),
+          isValid: true,
+          amountDecrypted: true,
+          assetId: 'someAssetId',
+          amount: new BigNumber(10),
+        },
+        {
+          legId: new BigNumber(0),
+          isValid: true,
+          amountDecrypted: true,
+          assetId: 'someOtherAsset',
+          amount: new BigNumber(10),
+        },
+      ]);
+
+      expect(service.verifyAndAffirmLeg(id, params)).rejects.toThrow(AppValidationError);
+    });
+
+    it('should throw an error if the asset IDs do not match', async () => {
+      decryptSpy.mockResolvedValue([
+        {
+          legId: new BigNumber(0),
+          isValid: true,
+          amountDecrypted: true,
+          assetId: 'someOtherAsset',
+          amount: new BigNumber(10),
+        },
+      ]);
+
+      expect(service.verifyAndAffirmLeg(id, params)).rejects.toThrow(AppValidationError);
     });
   });
 
