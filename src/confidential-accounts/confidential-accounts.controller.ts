@@ -19,6 +19,7 @@ import { AppliedConfidentialAssetBalancesModel } from '~/confidential-accounts/m
 import { ConfidentialAssetBalanceModel } from '~/confidential-accounts/models/confidential-asset-balance.model';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
 import { ConfidentialAssetIdParamsDto } from '~/confidential-assets/dto/confidential-asset-id-params.dto';
+import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import { IdentityModel } from '~/extended-identities/models/identity.model';
 import {
   ApiArrayResponse,
@@ -37,7 +38,10 @@ import {
 @ApiTags('confidential-accounts')
 @Controller('confidential-accounts')
 export class ConfidentialAccountsController {
-  constructor(private readonly confidentialAccountsService: ConfidentialAccountsService) {}
+  constructor(
+    private readonly confidentialAccountsService: ConfidentialAccountsService,
+    private readonly confidentialProofsService: ConfidentialProofsService
+  ) {}
 
   @Post(':confidentialAccount/link')
   @ApiOperation({
@@ -262,19 +266,62 @@ export class ConfidentialAccountsController {
       params
     );
 
-    const resolver: TransactionResolver<IncomingConfidentialAssetBalance[]> = ({
+    const resolver: TransactionResolver<IncomingConfidentialAssetBalance[]> = async ({
       result: appliedAssetBalances,
       transactions,
       details,
-    }) =>
-      new AppliedConfidentialAssetBalancesModel({
+    }) => {
+      const proofServerAccount = await this.confidentialProofsService
+        .getConfidentialAccount(confidentialAccount)
+        .catch(() => {
+          // If there is any error with the proof server then the amounts won't get decrypted
+          return undefined;
+        });
+
+      let decryptedBalances: { amount: BigNumber; balance: BigNumber }[] = [];
+      if (proofServerAccount) {
+        decryptedBalances = await Promise.all(
+          appliedAssetBalances.map(async ({ balance, amount }) => {
+            const amountPromise = this.confidentialProofsService.decryptBalance(
+              confidentialAccount,
+              { encryptedValue: amount }
+            );
+
+            const balancePromise = this.confidentialProofsService.decryptBalance(
+              confidentialAccount,
+              {
+                encryptedValue: balance,
+              }
+            );
+
+            const [decryptedAmount, decryptedBalance] = await Promise.all([
+              amountPromise,
+              balancePromise,
+            ]);
+
+            return {
+              amount: decryptedAmount.value,
+              balance: decryptedBalance.value,
+            };
+          })
+        );
+      }
+
+      return new AppliedConfidentialAssetBalancesModel({
         appliedAssetBalances: appliedAssetBalances.map(
-          ({ asset: { id: confidentialAsset }, amount, balance }) =>
-            new AppliedConfidentialAssetBalanceModel({ confidentialAsset, amount, balance })
+          ({ asset: { id: confidentialAsset }, amount, balance }, i) =>
+            new AppliedConfidentialAssetBalanceModel({
+              confidentialAsset,
+              amount,
+              decryptedAmount: decryptedBalances[i]?.amount,
+              balance,
+              decryptedBalance: decryptedBalances[i]?.balance,
+            })
         ),
         transactions,
         details,
       });
+    };
 
     return handleServiceResult(result, resolver);
   }

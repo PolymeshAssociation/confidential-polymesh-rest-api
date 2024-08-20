@@ -7,6 +7,7 @@ import { BigNumber } from '@polymeshassociation/polymesh-private-sdk';
 
 import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
 import confidentialProofsConfig from '~/confidential-proofs/config/confidential-proofs.config';
+import { AppNotFoundError } from '~/polymesh-rest-api/src/common/errors';
 import { mockPolymeshLoggerProvider } from '~/polymesh-rest-api/src/logger/mock-polymesh-logger';
 import { MockHttpService } from '~/test-utils/service-mocks';
 
@@ -47,7 +48,7 @@ describe('ConfidentialProofsService', () => {
 
   describe('getConfidentialAccounts', () => {
     it('should throw an error if status is not OK', async () => {
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 400,
       });
 
@@ -68,7 +69,7 @@ describe('ConfidentialProofsService', () => {
           confidentialAccount: 'SOME_PUBLIC_KEY',
         },
       ];
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: mockResult,
       });
@@ -85,13 +86,72 @@ describe('ConfidentialProofsService', () => {
     });
   });
 
+  describe('getConfidentialAccounts', () => {
+    it('should throw an error if status is not OK', async () => {
+      mockLastValueFrom.mockResolvedValue({
+        status: 400,
+      });
+
+      await expect(service.getConfidentialAccounts()).rejects.toThrow(
+        'Proof server responded with non-OK status: 400'
+      );
+
+      expect(mockHttpService.request).toHaveBeenCalledWith({
+        url: `${proofServerUrl}/accounts`,
+        method: 'GET',
+        timeout: 10000,
+      });
+    });
+
+    it('should return all the Confidential Accounts from proof server', async () => {
+      const confidentialAccount = 'SOME_PUBLIC_KEY';
+
+      const mockResult = {
+        confidentialAccount,
+        created_at: '2024-08-20T20:03:45.821Z',
+        updated_at: '2024-08-20T20:03:45.821Z',
+      };
+      mockLastValueFrom.mockResolvedValue({
+        status: 200,
+        data: mockResult,
+      });
+
+      const result = await service.getConfidentialAccount(confidentialAccount);
+
+      expect(mockHttpService.request).toHaveBeenCalledWith({
+        url: `${proofServerUrl}/accounts/${confidentialAccount}`,
+        method: 'GET',
+        timeout: 10000,
+      });
+
+      expect(result).toEqual({
+        confidentialAccount,
+        createdAt: '2024-08-20T20:03:45.821Z',
+        updatedAt: '2024-08-20T20:03:45.821Z',
+      });
+    });
+
+    it('should throw a not found error if the account is not present', async () => {
+      const confidentialAccount = 'SOME_PUBLIC_KEY';
+
+      mockLastValueFrom.mockRejectedValue({
+        response: {
+          status: 404,
+          data: 'not found',
+        },
+      });
+
+      expect(service.getConfidentialAccount(confidentialAccount)).rejects.toThrow(AppNotFoundError);
+    });
+  });
+
   describe('createConfidentialAccount', () => {
     it('should return create a new confidential account in proof server', async () => {
       const mockResult = {
         confidentialAccount: 'SOME_PUBLIC_KEY',
       };
 
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: mockResult,
       });
@@ -113,7 +173,7 @@ describe('ConfidentialProofsService', () => {
     it('should return generated sender proof', async () => {
       const mockResult = 'some_proof';
 
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: mockResult,
       });
@@ -143,7 +203,7 @@ describe('ConfidentialProofsService', () => {
 
   describe('verifySenderProofAsAuditor', () => {
     it('should return verify sender proof as an auditor', async () => {
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: {
           is_valid: true,
@@ -179,7 +239,7 @@ describe('ConfidentialProofsService', () => {
 
   describe('verifySenderProofAsReceiver', () => {
     it('should return verify sender proof as a receiver', async () => {
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: {
           is_valid: true,
@@ -213,7 +273,7 @@ describe('ConfidentialProofsService', () => {
 
   describe('decrypt', () => {
     it('should return decrypted balance', async () => {
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: {
           value: 10,
@@ -243,7 +303,7 @@ describe('ConfidentialProofsService', () => {
     it('should return generated burn proof', async () => {
       const mockResult = 'some_proof';
 
-      mockLastValueFrom.mockReturnValue({
+      mockLastValueFrom.mockResolvedValue({
         status: 200,
         data: mockResult,
       });

@@ -16,7 +16,7 @@ import { ReceiverVerifySenderProofDto } from '~/confidential-proofs/dto/receiver
 import { ConfidentialAccountEntity } from '~/confidential-proofs/entities/confidential-account.entity';
 import { DecryptedBalanceModel } from '~/confidential-proofs/models/decrypted-balance.model';
 import { SenderProofVerificationResponseModel } from '~/confidential-proofs/models/sender-proof-verification-response.model';
-import { AppInternalError } from '~/polymesh-rest-api/src/common/errors';
+import { AppInternalError, AppNotFoundError } from '~/polymesh-rest-api/src/common/errors';
 import { PolymeshLogger } from '~/polymesh-rest-api/src/logger/polymesh-logger.service';
 
 @Injectable()
@@ -48,9 +48,19 @@ export class ConfidentialProofsService {
         data: serializeObject(data),
         timeout: 10000,
       })
-    );
+    ).catch(error => {
+      return error.response;
+    });
 
     if (status !== HttpStatus.OK) {
+      if (status === HttpStatus.NOT_FOUND) {
+        this.logger.warn(
+          `requestProofServer - Proof server responded with non-OK status : ${status} with message for the endpoint: ${apiEndpoint}`
+        );
+
+        throw new AppNotFoundError(apiEndpoint, 'proofServer');
+      }
+
       this.logger.error(
         `requestProofServer - Proof server responded with non-OK status : ${status} with message for the endpoint: ${apiEndpoint}`
       );
@@ -70,6 +80,20 @@ export class ConfidentialProofsService {
     this.logger.debug('getConfidentialAccounts - Fetching Confidential Accounts from proof server');
 
     return this.requestProofServer<ConfidentialAccountEntity[]>('accounts', 'GET');
+  }
+
+  public async getConfidentialAccount(
+    confidentialAccount: string
+  ): Promise<ConfidentialAccountEntity> {
+    this.logger.debug(
+      'getConfidentialAccount - Fetching Confidential Account from proof server',
+      confidentialAccount
+    );
+
+    return this.requestProofServer<ConfidentialAccountEntity>(
+      `accounts/${confidentialAccount}`,
+      'GET'
+    );
   }
 
   /**

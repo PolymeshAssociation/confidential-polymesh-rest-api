@@ -9,12 +9,15 @@ import {
   ResultSet,
   TxTags,
 } from '@polymeshassociation/polymesh-private-sdk/types';
+import { when } from 'jest-when';
 
 import { ConfidentialAccountsController } from '~/confidential-accounts/confidential-accounts.controller';
 import { ConfidentialAccountsService } from '~/confidential-accounts/confidential-accounts.service';
 import { AppliedConfidentialAssetBalanceModel } from '~/confidential-accounts/models/applied-confidential-asset-balance.model';
 import { AppliedConfidentialAssetBalancesModel } from '~/confidential-accounts/models/applied-confidential-asset-balances.model';
 import { ConfidentialTransactionHistoryModel } from '~/confidential-accounts/models/confidential-transaction-history.model';
+import { ConfidentialProofsService } from '~/confidential-proofs/confidential-proofs.service';
+import { AppNotFoundError } from '~/polymesh-rest-api/src/common/errors';
 import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
 import { getMockTransaction, testValues } from '~/test-utils/consts';
@@ -23,24 +26,30 @@ import {
   createMockIdentity,
   createMockTransactionResult,
 } from '~/test-utils/mocks';
-import { mockConfidentialAccountsServiceProvider } from '~/test-utils/service-mocks';
+import {
+  mockConfidentialAccountsServiceProvider,
+  mockConfidentialProofsServiceProvider,
+} from '~/test-utils/service-mocks';
 
 const { signer, txResult } = testValues;
 
 describe('ConfidentialAccountsController', () => {
   let controller: ConfidentialAccountsController;
   let mockConfidentialAccountsService: DeepMocked<ConfidentialAccountsService>;
+  let mockConfidentialProofsService: DeepMocked<ConfidentialProofsService>;
   const confidentialAccount = 'SOME_PUBLIC_KEY';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ConfidentialAccountsController],
-      providers: [mockConfidentialAccountsServiceProvider],
+      providers: [mockConfidentialAccountsServiceProvider, mockConfidentialProofsServiceProvider],
     }).compile();
 
     mockConfidentialAccountsService = module.get<typeof mockConfidentialAccountsService>(
       ConfidentialAccountsService
     );
+    mockConfidentialProofsService =
+      module.get<typeof mockConfidentialProofsService>(ConfidentialProofsService);
 
     controller = module.get<ConfidentialAccountsController>(ConfidentialAccountsController);
   });
@@ -134,10 +143,47 @@ describe('ConfidentialAccountsController', () => {
   });
 
   describe('applyAllIncomingAssetBalances', () => {
+    const input = {
+      signer,
+    };
     it('should call the service and return the results', async () => {
-      const input = {
-        signer,
-      };
+      const mockAsset = createMockConfidentialAsset();
+      const mockIncomingAssetBalances = [
+        {
+          asset: mockAsset,
+          amount: '0xamount',
+          balance: '0xbalance',
+        },
+      ];
+      const transaction = getMockTransaction(TxTags.confidentialAsset.ApplyIncomingBalances);
+
+      const testTxResult = createMockTransactionResult<IncomingConfidentialAssetBalance[]>({
+        ...txResult,
+        transactions: [transaction],
+        result: mockIncomingAssetBalances,
+      });
+      mockConfidentialAccountsService.applyAllIncomingAssetBalances.mockResolvedValue(testTxResult);
+      mockConfidentialProofsService.getConfidentialAccount.mockRejectedValue(
+        new AppNotFoundError('test account', 'test')
+      );
+
+      const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
+      expect(result).toEqual(
+        new AppliedConfidentialAssetBalancesModel({
+          ...txResult,
+          transactions: [transaction],
+          appliedAssetBalances: [
+            new AppliedConfidentialAssetBalanceModel({
+              confidentialAsset: mockAsset.id,
+              amount: mockIncomingAssetBalances[0].amount,
+              balance: mockIncomingAssetBalances[0].balance,
+            }),
+          ],
+        })
+      );
+    });
+
+    it('should decrypt the amount and balance if the key is present', async () => {
       const mockAsset = createMockConfidentialAsset();
       const mockIncomingAssetBalances = [
         {
@@ -155,6 +201,22 @@ describe('ConfidentialAccountsController', () => {
       });
       mockConfidentialAccountsService.applyAllIncomingAssetBalances.mockResolvedValue(testTxResult);
 
+      when(mockConfidentialProofsService.getConfidentialAccount)
+        .calledWith(confidentialAccount)
+        .mockResolvedValue({
+          confidentialAccount,
+          createdAt: new Date('1987'),
+          updatedAt: new Date('1987'),
+        });
+
+      when(mockConfidentialProofsService.decryptBalance)
+        .calledWith(confidentialAccount, { encryptedValue: '0xbalance' })
+        .mockResolvedValue({ value: new BigNumber(7) });
+
+      when(mockConfidentialProofsService.decryptBalance)
+        .calledWith(confidentialAccount, { encryptedValue: '0xamount' })
+        .mockResolvedValue({ value: new BigNumber(3) });
+
       const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
       expect(result).toEqual(
         new AppliedConfidentialAssetBalancesModel({
@@ -164,7 +226,9 @@ describe('ConfidentialAccountsController', () => {
             new AppliedConfidentialAssetBalanceModel({
               confidentialAsset: mockAsset.id,
               amount: mockIncomingAssetBalances[0].amount,
+              decryptedAmount: new BigNumber(3),
               balance: mockIncomingAssetBalances[0].balance,
+              decryptedBalance: new BigNumber(7),
             }),
           ],
         })
