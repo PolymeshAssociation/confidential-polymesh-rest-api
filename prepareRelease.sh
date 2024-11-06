@@ -25,6 +25,6 @@ export SUBQUERY_IMAGE="polymeshassociation/polymesh-subquery:v12.1.0"
 # docker compose up -d chain
 
 # SWAGGER_VERSION=$nextVersion POLYMESH_NODE_URL='ws://localhost:9944' yarn generate:swagger > /dev/null 2>&1
-SWAGGER_VERSION=$nextVersion POLYMESH_NODE_URL='wss://dev.polymesh.tech/confidential/v1/' yarn generate:swagger > /dev/null 2>&1
+SWAGGER_VERSION=$nextVersion POLYMESH_NODE_URL='wss://dev.polymesh.tech/confidential/dev/' yarn generate:swagger > /dev/null 2>&1
 
 # docker compose down chain
