@@ -10,7 +10,7 @@ import { CreateConfidentialTransactionDto } from '~/confidential-transactions/dt
 import { CreatedConfidentialTransactionModel } from '~/confidential-transactions/models/created-confidential-transaction.model';
 import { CreatedConfidentialVenueModel } from '~/confidential-transactions/models/created-confidential-venue.model';
 import { IdentityModel } from '~/extended-identities/models/identity.model';
-import { ApiTransactionResponse } from '~/polymesh-rest-api/src/common/decorators/swagger';
+import { ApiTransactionResponse } from '~/polymesh-rest-api/src/common/decorators';
 import { IdParamsDto } from '~/polymesh-rest-api/src/common/dto/id-params.dto';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';

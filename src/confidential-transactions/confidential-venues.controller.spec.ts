@@ -13,7 +13,7 @@ import { ConfidentialVenuesController } from '~/confidential-transactions/confid
 import { ConfidentialTransactionLegDto } from '~/confidential-transactions/dto/confidential-transaction-leg.dto';
 import { CreatedConfidentialTransactionModel } from '~/confidential-transactions/models/created-confidential-transaction.model';
 import { CreatedConfidentialVenueModel } from '~/confidential-transactions/models/created-confidential-venue.model';
-import { getMockTransaction, testValues } from '~/test-utils/consts';
+import { getMockTransaction, processedTxResult, testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialTransaction,
   createMockConfidentialVenue,
@@ -78,7 +78,7 @@ describe('ConfidentialVenuesController', () => {
       const result = await controller.createVenue(input);
       expect(result).toEqual(
         new CreatedConfidentialVenueModel({
-          ...txResult,
+          ...processedTxResult,
           transactions: [transaction],
           confidentialVenue: mockVenue,
         })
@@ -111,7 +111,7 @@ describe('ConfidentialVenuesController', () => {
       const result = await controller.createConfidentialTransaction({ id: venueId }, input);
       expect(result).toEqual(
         new CreatedConfidentialTransactionModel({
-          ...txResult,
+          ...processedTxResult,
           transactions: [transaction],
           confidentialTransaction: mockResult,
         })

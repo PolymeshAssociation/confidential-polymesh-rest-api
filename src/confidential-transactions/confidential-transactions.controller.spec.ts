@@ -12,7 +12,7 @@ import { ConfidentialTransactionsController } from '~/confidential-transactions/
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { ObserverAffirmConfidentialTransactionDto } from '~/confidential-transactions/dto/observer-affirm-confidential-transaction.dto';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { testValues } from '~/test-utils/consts';
+import { processedTxResult, testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
   createMockConfidentialAsset,
@@ -111,7 +111,7 @@ describe('ConfidentialTransactionsController', () => {
         .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialTransaction>);
 
       const result = await controller.observerAffirmLeg({ id: transactionId }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -128,7 +128,7 @@ describe('ConfidentialTransactionsController', () => {
         .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialTransaction>);
 
       const result = await controller.rejectConfidentialTransaction({ id: transactionId }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -145,7 +145,7 @@ describe('ConfidentialTransactionsController', () => {
         .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialTransaction>);
 
       const result = await controller.executeConfidentialTransaction({ id: transactionId }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 

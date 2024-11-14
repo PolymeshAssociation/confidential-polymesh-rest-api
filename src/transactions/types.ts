@@ -1,6 +1,1 @@
-import {
-  PolymeshTransaction,
-  PolymeshTransactionBatch,
-} from '@polymeshassociation/polymesh-private-sdk/types';
-
-export type Transaction = PolymeshTransaction | PolymeshTransactionBatch;
+export * from '~/polymesh-rest-api/src/transactions/types';

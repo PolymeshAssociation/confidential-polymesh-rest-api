@@ -145,7 +145,7 @@ describe('TransactionsService', () => {
           blockHash: undefined,
           blockNumber: undefined,
           transactionHash: undefined,
-          transactionTag: TxTags.asset.RegisterTicker,
+          transactionTag: TxTags.asset.RegisterUniqueTicker,
           type: TransactionType.Single,
         },
       ]);
@@ -169,7 +169,7 @@ describe('TransactionsService', () => {
           blockHash: undefined,
           blockNumber: undefined,
           transactionHash: undefined,
-          transactionTags: [TxTags.asset.RegisterTicker, TxTags.asset.CreateAsset],
+          transactionTags: [TxTags.asset.RegisterUniqueTicker, TxTags.asset.CreateAsset],
           type: TransactionType.Batch,
         },
       ]);
@@ -232,6 +232,7 @@ describe('TransactionsService', () => {
       topicName: AddressName.Requests,
       payload: {} as SignerPayloadJSON,
       metadata: {},
+      multiSig: null,
     });
     it('should call the offline starter when given AMQP process mode', async () => {
       mockOfflineStarterService.beginTransaction.mockResolvedValue(fakeReceipt);
@@ -287,7 +288,7 @@ describe('TransactionsService', () => {
 
       const expectedPayload = {
         type: TransactionType.Single,
-        transactionTag: TxTags.asset.RegisterTicker,
+        transactionTag: TxTags.asset.RegisterUniqueTicker,
         status: TransactionStatus.Unapproved,
       };
       expect(result).toEqual({
@@ -376,7 +377,7 @@ describe('TransactionsService', () => {
         nonce: 0,
         payload: {
           type: TransactionType.Batch,
-          transactionTags: [TxTags.asset.RegisterTicker, TxTags.asset.CreateAsset],
+          transactionTags: [TxTags.asset.RegisterUniqueTicker, TxTags.asset.CreateAsset],
           status: TransactionStatus.Unapproved,
         },
       });
@@ -396,7 +397,7 @@ describe('TransactionsService', () => {
         scope: eventScope,
         payload: {
           type: TransactionType.Batch,
-          transactionTags: [TxTags.asset.RegisterTicker, TxTags.asset.CreateAsset],
+          transactionTags: [TxTags.asset.RegisterUniqueTicker, TxTags.asset.CreateAsset],
           status: TransactionStatus.Failed,
           transactionHash,
           blockHash,

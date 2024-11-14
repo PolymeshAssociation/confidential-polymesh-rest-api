@@ -25,7 +25,7 @@ import {
   ApiArrayResponse,
   ApiTransactionFailedResponse,
   ApiTransactionResponse,
-} from '~/polymesh-rest-api/src/common/decorators/swagger';
+} from '~/polymesh-rest-api/src/common/decorators';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
 import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
 import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
@@ -404,6 +404,7 @@ export class ConfidentialAccountsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
+    type: TransactionQueueModel,
   })
   @Post('move-funds')
   public async moveFunds(@Body() args: MoveFundsDto): Promise<TransactionResponseModel> {

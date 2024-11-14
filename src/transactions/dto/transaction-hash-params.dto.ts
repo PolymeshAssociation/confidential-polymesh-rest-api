@@ -1,11 +1,3 @@
 /* istanbul ignore file */
 
-import { IsHexadecimal, Length } from 'class-validator';
-
-import { TRANSACTION_HASH_LENGTH } from '~/transactions/transactions.consts';
-
-export class TransactionHashParamsDto {
-  @IsHexadecimal()
-  @Length(TRANSACTION_HASH_LENGTH)
-  readonly hash: string;
-}
+export { TransactionHashParamsDto } from '~/polymesh-rest-api/src/transactions/dto/transaction-hash-params.dto';

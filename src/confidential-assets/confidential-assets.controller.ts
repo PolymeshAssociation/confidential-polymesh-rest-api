@@ -25,8 +25,9 @@ import { CreatedConfidentialAssetModel } from '~/confidential-assets/models/crea
 import {
   ApiTransactionFailedResponse,
   ApiTransactionResponse,
-} from '~/polymesh-rest-api/src/common/decorators/swagger';
+} from '~/polymesh-rest-api/src/common/decorators/';
 import { TransactionBaseDto } from '~/polymesh-rest-api/src/common/dto/transaction-base-dto';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 import {
   handleServiceResult,
   TransactionResolver,
@@ -248,6 +249,7 @@ export class ConfidentialAssetsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
+    type: TransactionQueueModel,
   })
   @ApiTransactionFailedResponse({
     [HttpStatus.BAD_REQUEST]: [
@@ -276,6 +278,7 @@ export class ConfidentialAssetsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
+    type: TransactionQueueModel,
   })
   @ApiTransactionFailedResponse({
     [HttpStatus.BAD_REQUEST]: [
@@ -304,6 +307,7 @@ export class ConfidentialAssetsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
+    type: TransactionQueueModel,
   })
   @ApiTransactionFailedResponse({
     [HttpStatus.BAD_REQUEST]: [
@@ -333,6 +337,7 @@ export class ConfidentialAssetsController {
   })
   @ApiTransactionResponse({
     description: 'Details about the transaction',
+    type: TransactionQueueModel,
   })
   @ApiTransactionFailedResponse({
     [HttpStatus.BAD_REQUEST]: [

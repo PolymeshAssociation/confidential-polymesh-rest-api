@@ -17,7 +17,7 @@ import { SenderAffirmationModel } from '~/confidential-proofs/models/sender-affi
 import { ConfidentialTransactionsService } from '~/confidential-transactions/confidential-transactions.service';
 import { VerifyAndAffirmDto } from '~/confidential-transactions/dto/verify-and-affirm.dto';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { testValues, txResult } from '~/test-utils/consts';
+import { processedTxResult, testValues, txResult } from '~/test-utils/consts';
 import {
   mockConfidentialAssetsServiceProvider,
   mockConfidentialProofsServiceProvider,
@@ -113,7 +113,7 @@ describe('ConfidentialProofsController', () => {
       const result = await controller.senderAffirmLeg({ id: transactionId }, input);
       expect(result).toEqual(
         new SenderAffirmationModel({
-          ...txResult,
+          ...processedTxResult,
           proofs: [{ asset: 'someId', proof: 'someProof' }],
         })
       );
@@ -199,7 +199,7 @@ describe('ConfidentialProofsController', () => {
         .mockResolvedValue(txResult as unknown as ServiceReturn<ConfidentialAsset>);
 
       const result = await controller.burnConfidentialAsset({ confidentialAssetId }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -235,7 +235,7 @@ describe('ConfidentialProofsController', () => {
 
       const result = await controller.verifyAndAffirmLeg({ id }, input);
 
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 });

@@ -8,7 +8,15 @@
 
 A REST API wrapper for the Polymesh Private blockchain.
 
-This version is compatible with chain versions 1.0.x
+This version is compatible with polymesh private chain versions 1.x and 2.x
+
+## Submodule Notice
+
+This repo uses a submodule to avoid duplicating the public REST API. The submodules can be pulled with:
+
+```
+git submodule update --init --recursive
+```
 
 ## Setup
 

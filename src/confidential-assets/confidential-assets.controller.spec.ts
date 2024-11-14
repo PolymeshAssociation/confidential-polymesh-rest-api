@@ -12,7 +12,7 @@ import { ConfidentialAssetsController } from '~/confidential-assets/confidential
 import { ConfidentialAssetsService } from '~/confidential-assets/confidential-assets.service';
 import { CreatedConfidentialAssetModel } from '~/confidential-assets/models/created-confidential-asset.model';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { getMockTransaction, testValues } from '~/test-utils/consts';
+import { getMockTransaction, processedTxResult, testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAccount,
   createMockConfidentialAsset,
@@ -101,7 +101,7 @@ describe('ConfidentialAssetsController', () => {
       const result = await controller.createConfidentialAsset(input);
       expect(result).toEqual(
         new CreatedConfidentialAssetModel({
-          ...txResult,
+          ...processedTxResult,
           transactions: [transaction],
           confidentialAsset: mockConfidentialAsset,
         })
@@ -121,7 +121,7 @@ describe('ConfidentialAssetsController', () => {
       );
 
       const result = await controller.issueConfidentialAsset({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -165,7 +165,7 @@ describe('ConfidentialAssetsController', () => {
         { confidentialAssetId: id },
         input
       );
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -180,10 +180,10 @@ describe('ConfidentialAssetsController', () => {
       );
 
       let result = await controller.addAllowedVenues({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
 
       result = await controller.removeAllowedVenues({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -197,10 +197,10 @@ describe('ConfidentialAssetsController', () => {
       );
 
       let result = await controller.freezeConfidentialAsset({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
 
       result = await controller.unfreezeConfidentialAsset({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -215,10 +215,10 @@ describe('ConfidentialAssetsController', () => {
       );
 
       let result = await controller.freezeConfidentialAccount({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
 
       result = await controller.unfreezeConfidentialAccount({ confidentialAssetId: id }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 

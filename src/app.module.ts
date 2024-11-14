@@ -13,7 +13,6 @@ import { ConfidentialTransactionsModule } from '~/confidential-transactions/conf
 import { ExtendedIdentitiesModule } from '~/extended-identities/identities.module';
 import { PolymeshModule } from '~/polymesh/polymesh.module';
 import { AccountsModule } from '~/polymesh-rest-api/src/accounts/accounts.module';
-import { ArtemisModule } from '~/polymesh-rest-api/src/artemis/artemis.module';
 import { AssetsModule } from '~/polymesh-rest-api/src/assets/assets.module';
 import { AuthModule } from '~/polymesh-rest-api/src/auth/auth.module';
 import { AuthStrategy } from '~/polymesh-rest-api/src/auth/strategies/strategies.consts';
@@ -26,6 +25,7 @@ import { CorporateActionsModule } from '~/polymesh-rest-api/src/corporate-action
 import { DeveloperTestingModule } from '~/polymesh-rest-api/src/developer-testing/developer-testing.module';
 import { EventsModule } from '~/polymesh-rest-api/src/events/events.module';
 import { IdentitiesModule } from '~/polymesh-rest-api/src/identities/identities.module';
+import { ArtemisModule } from '~/polymesh-rest-api/src/message/artemis/artemis.module';
 import { MetadataModule } from '~/polymesh-rest-api/src/metadata/metadata.module';
 import { NetworkModule } from '~/polymesh-rest-api/src/network/network.module';
 import { NftsModule } from '~/polymesh-rest-api/src/nfts/nfts.module';

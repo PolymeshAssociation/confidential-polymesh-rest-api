@@ -3,8 +3,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
-import { TransactionQueueModel } from '~/common/models/transaction-queue.model';
 import { ConfidentialProofModel } from '~/confidential-transactions/models/confidential-proof.model';
+import { TransactionQueueModel } from '~/polymesh-rest-api/src/common/models/transaction-queue.model';
 
 export class SenderAffirmationModel extends TransactionQueueModel {
   @ApiPropertyOptional({

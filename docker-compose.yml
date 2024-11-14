@@ -1,6 +1,6 @@
 services:
   chain:
-    image: ${CHAIN_IMAGE}
+    image: ${CHAIN_IMAGE:-polymeshassociation/polymesh-private:2.0.0-main-debian}
     init: true # Faster shutdown by container process not be PID 1
     restart: unless-stopped
     ports:
@@ -12,8 +12,11 @@ services:
       - 'host.docker.internal:host-gateway'
     volumes:
       - './compose/chain-entry.sh:/chain-entry.sh'
-    entrypoint: '/chain-entry.sh'
-    command: [ '--alice --chain dev' ]
+    command:
+      - --dev
+      - --rpc-external
+      - --ws-external
+      - --base-path=/var/lib/polymesh-private
     healthcheck:
       test: "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/9933' && exit 0 || exit 1"
       interval: 10s
@@ -23,7 +26,7 @@ services:
 
   subquery:
     platform: 'linux/amd64'
-    image: '${SUBQUERY_IMAGE}'
+    image: '${SUBQUERY_IMAGE:-polymeshassociation/polymesh-subquery:v17.1.1}'
     init: true
     restart: unless-stopped
     depends_on:
@@ -50,7 +53,7 @@ services:
       timeout: 10s
 
   graphql:
-    image: onfinality/subql-query:v1.0.0
+    image: onfinality/subql-query:v2.9.0
     restart: unless-stopped
     ports:
       - ${SQ_PORT:-3001}:3000
@@ -91,8 +94,12 @@ services:
       - db-data:/var/lib/postgresql/data
       - ./compose/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     environment:
-      POSTGRES_USER: $REST_POSTGRES_USER
-      POSTGRES_PASSWORD: $REST_POSTGRES_PASSWORD
+      POSTGRES_USER: ${REST_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${REST_POSTGRES_PASSWORD:-postgres}
+    configs:
+      - source: pg-extensions
+        target: /docker-entrypoint-initdb.d/btree_extension.sql
+        mode: 0555
     healthcheck:
       test: [ 'CMD-SHELL', 'pg_isready -U postgres' ]
       interval: 5s
@@ -101,3 +108,8 @@ services:
 
 volumes:
   db-data:
+
+configs:
+  pg-extensions:
+    external: false
+    file: ./compose/pg-extensions.sql

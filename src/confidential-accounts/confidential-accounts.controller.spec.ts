@@ -20,7 +20,7 @@ import { ConfidentialProofsService } from '~/confidential-proofs/confidential-pr
 import { AppNotFoundError } from '~/polymesh-rest-api/src/common/errors';
 import { PaginatedResultsModel } from '~/polymesh-rest-api/src/common/models/paginated-results.model';
 import { ServiceReturn } from '~/polymesh-rest-api/src/common/utils/functions';
-import { getMockTransaction, testValues } from '~/test-utils/consts';
+import { getMockTransaction, processedTxResult, testValues } from '~/test-utils/consts';
 import {
   createMockConfidentialAsset,
   createMockIdentity,
@@ -68,7 +68,7 @@ describe('ConfidentialAccountsController', () => {
       );
 
       const result = await controller.linkAccount({ confidentialAccount }, input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 
@@ -170,7 +170,7 @@ describe('ConfidentialAccountsController', () => {
       const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
       expect(result).toEqual(
         new AppliedConfidentialAssetBalancesModel({
-          ...txResult,
+          ...processedTxResult,
           transactions: [transaction],
           appliedAssetBalances: [
             new AppliedConfidentialAssetBalanceModel({
@@ -220,7 +220,7 @@ describe('ConfidentialAccountsController', () => {
       const result = await controller.applyAllIncomingAssetBalances({ confidentialAccount }, input);
       expect(result).toEqual(
         new AppliedConfidentialAssetBalancesModel({
-          ...txResult,
+          ...processedTxResult,
           transactions: [transaction],
           appliedAssetBalances: [
             new AppliedConfidentialAssetBalanceModel({
@@ -306,7 +306,7 @@ describe('ConfidentialAccountsController', () => {
       );
 
       const result = await controller.moveFunds(input);
-      expect(result).toEqual(txResult);
+      expect(result).toEqual(processedTxResult);
     });
   });
 });
